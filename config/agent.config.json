@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Strong Agent Configuration",
+  "type": "object",
+  "properties": {
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": "StrongAgent"
+        },
+        "version": {
+          "type": "string",
+          "default": "1.0.0"
+        },
+        "model": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": ["openai", "anthropic", "local"],
+              "default": "openai"
+            },
+            "model": {
+              "type": "string",
+              "default": "gpt-4"
+            },
+            "temperature": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2,
+              "default": 0.7
+            }
+          },
+          "required": ["provider", "model"]
+        }
+      },
+      "required": ["name", "version", "model"]
+    },
+    "tools": {
+      "type": "object",
+      "properties": {
+        "readFile": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "maxFileSize": {
+              "type": "number",
+              "default": 1048576,
+              "description": "Maximum file size in bytes (1MB)"
+            }
+          }
+        },
+        "writeFile": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "requireApproval": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "gitTool": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "allowedCommands": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["status", "add", "commit", "push", "branch"]
+            }
+          }
+        },
+        "deployTool": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "requireApproval": {
+              "type": "boolean",
+              "default": true
+            },
+            "allowedEnvironments": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["development", "staging", "production"]
+              },
+              "default": ["development", "staging"]
+            }
+          }
+        },
+        "webSearch": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "maxResults": {
+              "type": "number",
+              "default": 10
+            }
+          }
+        },
+        "codeInterpreter": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "sandboxMode": {
+              "type": "boolean",
+              "default": true
+            },
+            "allowedLanguages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["javascript", "typescript"]
+            }
+          }
+        }
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["strict", "moderate", "permissive"],
+          "default": "moderate",
+          "description": "Guardrail enforcement level"
+        },
+        "approvalRequired": {
+          "type": "object",
+          "properties": {
+            "fileOperations": {
+              "type": "boolean",
+              "default": true
+            },
+            "deployments": {
+              "type": "boolean",
+              "default": true
+            },
+            "systemCommands": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "blockedOperations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "format",
+            "rm -rf",
+            "dd if=",
+            "sudo"
+          ]
+        }
+      }
+    },
+    "integrations": {
+      "type": "object",
+      "properties": {
+        "vectorStore": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "provider": {
+              "type": "string",
+              "enum": ["local", "pinecone", "openai"],
+              "default": "local"
+            }
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "port": {
+          "type": "number",
+          "default": 3000
+        },
+        "cors": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "origins": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["http://localhost:3000"]
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["agent", "tools", "guardrails"]
+}

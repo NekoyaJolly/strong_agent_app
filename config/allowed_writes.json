@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Allowed Writes Policy",
+  "description": "プロジェクトごとの書き込み許可ポリシー設定",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "1.0.0",
+      "description": "ポリシーファイルのバージョン"
+    },
+    "defaultPolicy": {
+      "type": "object",
+      "properties": {
+        "allowWrites": {
+          "type": "boolean",
+          "default": false,
+          "description": "デフォルトで書き込みを許可するか"
+        },
+        "requireApproval": {
+          "type": "boolean",
+          "default": true,
+          "description": "書き込み時に承認が必要か"
+        }
+      },
+      "required": ["allowWrites", "requireApproval"]
+    },
+    "projects": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "プロジェクト名"
+            },
+            "path": {
+              "type": "string",
+              "description": "プロジェクトのパス"
+            },
+            "allowWrites": {
+              "type": "boolean",
+              "description": "書き込みを許可するか"
+            },
+            "requireApproval": {
+              "type": "boolean",
+              "description": "書き込み時に承認が必要か"
+            },
+            "allowedPaths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "書き込み許可されたパスのリスト"
+            },
+            "blockedPaths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "書き込みがブロックされたパスのリスト"
+            },
+            "approvalRequired": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "承認が必要なパスのリスト"
+            },
+            "maxFileSize": {
+              "type": "number",
+              "description": "書き込み可能な最大ファイルサイズ（バイト）",
+              "default": 1048576
+            },
+            "allowedExtensions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "書き込み許可されたファイル拡張子",
+              "default": [".js", ".ts", ".json", ".md", ".txt", ".yml", ".yaml"]
+            }
+          },
+          "required": ["name", "path", "allowWrites"]
+        }
+      }
+    },
+    "globalRules": {
+      "type": "object",
+      "properties": {
+        "systemPaths": {
+          "type": "object",
+          "properties": {
+            "blocked": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "/etc",
+                "/usr",
+                "/bin",
+                "/sbin",
+                "/root",
+                "/system",
+                "/.env"
+              ],
+              "description": "システム全体でブロックされるパス"
+            },
+            "requireApproval": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "/config",
+                "package.json",
+                "tsconfig.json",
+                ".gitignore",
+                "Dockerfile",
+                "docker-compose.yml"
+              ],
+              "description": "システム全体で承認が必要なパス"
+            }
+          }
+        },
+        "fileTypes": {
+          "type": "object",
+          "properties": {
+            "executable": {
+              "type": "object",
+              "properties": {
+                "allowCreation": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "実行可能ファイルの作成を許可するか"
+                },
+                "requireApproval": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "実行可能ファイルの作成に承認が必要か"
+                }
+              }
+            },
+            "config": {
+              "type": "object",
+              "properties": {
+                "allowModification": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "設定ファイルの変更を許可するか"
+                },
+                "requireApproval": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "設定ファイルの変更に承認が必要か"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["version", "defaultPolicy"]
+}
