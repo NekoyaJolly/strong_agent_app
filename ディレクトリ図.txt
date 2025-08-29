@@ -1,0 +1,54 @@
+/strong_agent_app/
+├─ README.md
+├─ LICENSE
+├─ package.json
+├─ tsconfig.json
+├─ .env.example
+├─ .gitignore
+├─ docker-compose.yml            # （コンテナ運用をする場合）
+├─ Dockerfile                    # （単体コンテナ実行用）
+├─ src/
+│  ├─ index.ts                   # 起点（CLI / サーバ起動）
+│  ├─ agent/
+│  │  ├─ agent.ts                # Agent定義（ツール, ガードレール, model 設定）
+│  │  ├─ tools/                  # カスタムツール実装（read/write/git等）
+│  │  │  ├─ readFile.ts
+│  │  │  ├─ writeFile.ts
+│  │  │  ├─ gitTool.ts
+│  │  │  └─ deployTool.ts        # （承認フローを含む）
+│  │  ├─ guardrails.ts           # 出力スキーマ / 承認ルール（Zod等）
+│  │  └─ workflows/              # 定型ワークフロー（triage, coding, test）
+│  ├─ integrators/
+│  │  ├─ fileSearchIntegrator.ts  # fileSearch tool のラッパ（vector store id管理）
+│  │  ├─ webSearchIntegrator.ts   # webSearch wrapper（オプション設定）
+│  │  └─ codeInterpreterWrap.ts
+│  ├─ runners/
+│  │  ├─ cliRunner.ts            # CLI 実行ロジック（ワンショット）
+│  │  └─ serverRunner.ts         # API サーバ／Web UI 向けの起動器（Express/Fastify）
+│  ├─ utils/
+│  │  ├─ env.ts                  # env 読込・優先順位（プロジェクトごと読み替えロジック）
+│  │  ├─ logger.ts               # structured logging（trace idを必ず付与）
+│  │  └─ permission.ts           # write権限チェックロジック
+│  └─ templates/                 # 出力テンプレート（PRテンプレ等）
+├─ workspace/                     # Agentが安全に書き込める既定領域（マウント/シンボリック推奨）
+├─ projects/                      # 各プロジェクトを入れるための読み取り対象ルート（symlink想定）
+│  ├─ example-project-1/
+│  └─ example-project-2/
+├─ data/
+│  ├─ vector_index_cache/         # optional: ローカルキャッシュ、embedding/vecstoreメタ
+│  └─ state.db (sqlite)           # optional: Agentの軽量状態管理（承認ログ等）
+├─ scripts/
+│  ├─ bootstrap.sh                # 初回セットアップ（依存インストール、ベクターストア登録補助）
+│  ├─ index_docs.js/ts            # プロジェクト文書をベクトル化してアップロードするツール
+│  └─ migrate_vector_store.sh
+├─ tests/
+│  └─ agent.unit.test.ts
+├─ .vscode/
+│  ├─ launch.json
+│  └─ settings.json
+├─ docs/
+│  ├─ OPERATION.md                # 運用手順（承認フロー、緊急停止）
+│  └─ SECURITY.md                 # セキュリティ設計
+└─ config/
+   ├─ agent.config.json           # 高レベル設定（ツール有効/無効, guardrailレベル）
+   └─ allowed_writes.json         # プロジェクトごとの書き込み許可ポリシー
