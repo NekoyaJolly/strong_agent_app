@@ -1,23 +1,24 @@
-// src/agents/guardrails.ts
-import { InputGuardrail, OutputGuardrail, run } from '@openai/agents';
-import { z } from 'zod';
+import { InputGuardrail, OutputGuardrail } from '@openai/agents';
 
-// シンプルな「秘密情報」検知（入力）
+// 1) Basic secret-token leak prevention
 export const noSecretsGuardrail: InputGuardrail = {
-  name: 'No-Secrets',
+  name: 'no-secrets',
   async execute({ input }) {
     const text = typeof input === 'string' ? input : JSON.stringify(input);
-    const hit = /(sk-(?:live|test|[A-Za-z0-9]{20,}))/i.test(text) || /API[_-]?KEY/i.test(text);
-    return { tripwireTriggered: hit, outputInfo: { hit } };
+    const token =
+      /(sk-[A-Za-z0-9_\-]{10,})/i.test(text) ||
+      /api[_-]?key/i.test(text) ||
+      /authorization:\s*bearer\s+[A-Za-z0-9\._\-]+/i.test(text);
+    return { tripwireTriggered: token, outputInfo: { token } };
   },
 };
 
-// 出力が巨大化/未構造化していないかを簡易チェック
+// 2) Prevent giant JSON payloads
 export const compactJsonGuardrail: OutputGuardrail<any> = {
-  name: 'Compact-JSON',
+  name: 'compact-json',
   async execute({ agentOutput }) {
-    const serialized = JSON.stringify(agentOutput ?? {});
-    const tooLarge = serialized.length > 120_000; // 120KB超は停止
-    return { tripwireTriggered: tooLarge, outputInfo: { size: serialized.length } };
+    const s = JSON.stringify(agentOutput ?? {});
+    const tooLarge = s.length > 120000;
+    return { tripwireTriggered: tooLarge, outputInfo: { size: s.length } };
   },
 };
