@@ -10,3 +10,11 @@ export function loadEnvForProject(projectName: string) {
   if (fs.existsSync(p1)) dotenv.config({ path: p1 });
   dotenv.config(); // fallback to root .env
 }
+
+export function loadOpenAIKeyFromSecrets() {
+  const p = process.env.OPENAI_API_KEY_FILE || '/run/secrets/openai_api_key';
+  if (fs.existsSync(p)) {
+    const key = fs.readFileSync(p, 'utf8').trim();
+    if (key && !process.env.OPENAI_API_KEY) process.env.OPENAI_API_KEY = key;
+  }
+}

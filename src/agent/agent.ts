@@ -34,7 +34,7 @@ export async function runAgent(input: string) {
   const result = await run(triageAgent, input);
   return {
     finalOutput: result.finalOutput, // 最終テキスト等
-    finalAgent: result.finalAgent?.name ?? triageAgent.name,
-    usage: result.usage,             // トークン/コール使用量（あれば）
+    agentName: triageAgent.name,     // エージェント名
+    result: result,                  // 全体の結果
   };
 }

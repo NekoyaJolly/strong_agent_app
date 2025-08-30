@@ -1,8 +1,21 @@
+// src/index.ts（置き換え）
 import 'dotenv/config';
-import { cliRunner } from './runners/cliRunner';
+import { startServer } from './runners/serverRunner.js';
+import { run } from '@openai/agents';
+import { setDefaultOpenAIKey } from '@openai/agents-openai';
+import { triageAgent } from './agent/triage.js';
+import { loadOpenAIKeyFromSecrets } from './utils/env.js';
 
-const args = process.argv.slice(2);
-const project = args[0] || 'example-project-1';
-const task = args.slice(1).join(' ') || 'Describe project and propose 3 tasks';
+const MODE = process.env.RUN_MODE ?? (process.env.NODE_ENV === 'production' ? 'server' : 'cli');
 
-await cliRunner({ project, task });
+if (MODE === 'server') {
+  await startServer();
+} else {
+  loadOpenAIKeyFromSecrets();
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error('OPENAI_API_KEY not set');
+  setDefaultOpenAIKey(key); // Agents SDK の推奨初期化。:contentReference[oaicite:9]{index=9}
+  const input = process.argv.slice(2).join(' ') || '稼働テスト';
+  const result = await run(triageAgent, input, { maxTurns: 4 });
+  console.log(result.finalOutput || 'No output');
+}
