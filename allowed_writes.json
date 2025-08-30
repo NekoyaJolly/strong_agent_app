@@ -1,0 +1,8 @@
+{
+  "allow": [
+    "docs/**",
+    "CHANGELOG.md",
+    "README.md",
+    "tmp/agent/**"
+  ]
+}

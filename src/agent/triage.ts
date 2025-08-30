@@ -1,5 +1,4 @@
-// src/agents/triage.ts
-import { Agent, handoff } from '@openai/agents';
+import { Agent, handoff, webSearchTool } from '@openai/agents';
 import { removeAllTools, RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { z } from 'zod';
 import { architectAgent } from './architect.js';
@@ -8,55 +7,33 @@ import { reviewerAgent } from './reviewer.js';
 import { testAgent } from './tester.js';
 import { devopsAgent } from './devops.js';
 import { docsAgent } from './docs.js';
-import { noSecretsGuardrail } from './guardrails.js';
+import { noSecretsGuardrail, compactJsonGuardrail } from './guardrails.js';
+import { readFile } from './tools/readFile.js';
+import { writeFileSafe } from './tools/writeFile.js';
 
-// ✅ スキーマと型を分離（同名NG）
 const TriageNoteSchema = z.object({ memo: z.string().optional() });
 export type TriageNote = z.infer<typeof TriageNoteSchema>;
 
-// ✅ Agent.create はジェネリクス不要
 export const triageAgent = Agent.create({
-  name: 'Triage/PM',
-  instructions: `${RECOMMENDED_PROMPT_PREFIX}
-あなたは一次窓口です。以下の担当へ適切に移譲し、必要であれば自分で補足回答します。
-- Architect: 技術選定/雛形
-- Implementer: 実装
-- Reviewer: レビュー
-- Test: テスト
-- DevOps: デプロイ
-- Docs: ドキュメント`,
+  name: 'Triage',
+  instructions: [
+    RECOMMENDED_PROMPT_PREFIX,
+    'You triage requests, summarize goals, and hand off to specialists as needed.',
+    'When tools are required, prefer webSearch first, read_file next, and write_file_safe only with explicit user consent.',
+  ].join('\n'),
+  tools: [
+    webSearchTool(),
+    readFile,
+    writeFileSafe,
+  ],
   inputGuardrails: [noSecretsGuardrail],
+  outputGuardrails: [compactJsonGuardrail],
   handoffs: [
-    handoff(architectAgent, {
-      toolDescriptionOverride: '技術選定やディレクトリ構成、初期バックログが必要なときに使用',
-      inputFilter: removeAllTools,
-      // ✅ Zodスキーマを渡す
-      inputType: TriageNoteSchema,
-    }),
-    handoff(implementerAgent, {
-      toolDescriptionOverride: '具体的な実装/ファイル作成/コマンド提示が必要なときに使用',
-      inputFilter: removeAllTools,
-      inputType: TriageNoteSchema,
-    }),
-    handoff(reviewerAgent, {
-      toolDescriptionOverride: 'レビュー/静的解析/指摘とスコアが必要なときに使用',
-      inputFilter: removeAllTools,
-      inputType: TriageNoteSchema,
-    }),
-    handoff(testAgent, {
-      toolDescriptionOverride: 'テストケース提案/想定結果の要約が必要なときに使用',
-      inputFilter: removeAllTools,
-      inputType: TriageNoteSchema,
-    }),
-    handoff(devopsAgent, {
-      toolDescriptionOverride: 'Docker/CI/プレビュー環境/ロールバック手順が必要なときに使用',
-      inputFilter: removeAllTools,
-      inputType: TriageNoteSchema,
-    }),
-    handoff(docsAgent, {
-      toolDescriptionOverride: 'README/CHANGELOG/Runbookの更新が必要なときに使用',
-      inputFilter: removeAllTools,
-      inputType: TriageNoteSchema,
-    }),
+    handoff(architectAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
+    handoff(implementerAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
+    handoff(reviewerAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
+    handoff(testAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
+    handoff(devopsAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
+    handoff(docsAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
   ],
 });

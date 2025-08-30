@@ -1,8 +1,7 @@
 // src/index.ts（置き換え）
 import 'dotenv/config';
 import { startServer } from './runners/serverRunner.js';
-import { run } from '@openai/agents';
-import { setDefaultOpenAIKey } from '@openai/agents-openai';
+import { run, setDefaultOpenAIKey } from '@openai/agents';
 import { triageAgent } from './agent/triage.js';
 import { loadOpenAIKeyFromSecrets } from './utils/env.js';
 

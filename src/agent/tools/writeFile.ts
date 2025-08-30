@@ -1,32 +1,74 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs/promises';
+import path from 'node:path';
+import { tool } from '@openai/agents';
+import { z } from 'zod';
 
-/**
- * ファイル書き込みツール
- * 指定されたパスにファイルを書き込みます
- */
-export class WriteFileTool {
-  async writeFile(filePath: string, content: string): Promise<void> {
-    try {
-      // ディレクトリが存在しない場合は作成
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+type AllowConfig = { allow: string[] };
 
-      await fs.promises.writeFile(filePath, content, 'utf8');
-      console.log(`File written successfully: ${filePath}`);
-    } catch (error) {
-      throw new Error(`Failed to write file ${filePath}: ${error}`);
-    }
-  }
-
-  async appendFile(filePath: string, content: string): Promise<void> {
-    try {
-      await fs.promises.appendFile(filePath, content, 'utf8');
-      console.log(`Content appended to file: ${filePath}`);
-    } catch (error) {
-      throw new Error(`Failed to append to file ${filePath}: ${error}`);
-    }
+async function loadAllowlist(): Promise<AllowConfig> {
+  try {
+    const raw = await fs.readFile(path.resolve(process.cwd(), 'allowed_writes.json'), 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return { allow: [] };
   }
 }
+
+function globToRegex(glob: string): RegExp {
+  const escaped = glob
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*\*/g, '::DOUBLE_STAR::')
+    .replace(/\*/g, '[^/]*')
+    .replace(/::DOUBLE_STAR::/g, '.*');
+  return new RegExp(`^${escaped}$`);
+}
+
+function normalize(p: string) {
+  return path.resolve(process.cwd(), p);
+}
+
+async function pathIsSafeWrite(resolvedPath: string, allow: string[]) {
+  const root = process.cwd();
+  const rel = path.relative(root, resolvedPath).replaceAll('\\', '/');
+  if (rel.startsWith('..') || path.isAbsolute(rel)) return false;
+  try {
+    const parts = resolvedPath.split(path.sep);
+    let cur = path.parse(resolvedPath).root;
+    for (const part of parts.filter(Boolean)) {
+      cur = path.join(cur, part);
+      try {
+        const st = await fs.lstat(cur);
+        if (st.isSymbolicLink()) return false;
+      } catch {
+        break;
+      }
+    }
+  } catch {
+    return false;
+  }
+  const allowed = allow.some((pattern) => globToRegex(pattern).test(rel));
+  return allowed;
+}
+
+export const writeFileSafe = tool({
+  name: 'write_file_safe',
+  description: 'Write UTF-8 text under allowed_writes.json paths. No traversal or symlinks.',
+  parameters: z.object({
+    filepath: z.string().min(1),
+    content: z.string(),
+    append: z.boolean().optional(),
+  }),
+  strict: true,
+  async execute({ filepath, content, append }) {
+    const resolved = normalize(filepath);
+    const { allow } = await loadAllowlist();
+    const ok = await pathIsSafeWrite(resolved, allow);
+    if (!ok) {
+      throw new Error('Write denied by allowlist');
+    }
+    await fs.mkdir(path.dirname(resolved), { recursive: true });
+    if (append) await fs.appendFile(resolved, content, 'utf8');
+    else await fs.writeFile(resolved, content, 'utf8');
+    return { filepath: path.relative(process.cwd(), resolved), bytes: Buffer.byteLength(content, 'utf8'), mode: append ? 'append' : 'write' };
+  },
+});
