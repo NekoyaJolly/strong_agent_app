@@ -23,5 +23,22 @@
     "@types/node": "^22.18.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
-  }
+  },
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NekoyaJolly/strong_agent_app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NekoyaJolly/strong_agent_app/issues"
+  },
+  "homepage": "https://github.com/NekoyaJolly/strong_agent_app#readme"
 }
