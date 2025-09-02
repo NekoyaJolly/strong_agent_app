@@ -1,11 +1,36 @@
 name: ci
 on:
   push:
-    branches: [ main, staging ]
+    branches: [ main, staging, master ]
   pull_request:
-    branches: [ main, staging ]
+    branches: [ main, staging, master ]
 jobs:
+  test-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run linting
+        run: npm run lint
+      - name: Run type checking
+        run: npm run type-check
+      - name: Run tests
+        run: npm run test:coverage
+      - name: Upload coverage to GitHub
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+      - name: Build project
+        run: npm run build
+
   build-and-docker:
+    needs: test-and-quality
     runs-on: ubuntu-latest
     permissions:
       contents: read
