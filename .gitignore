@@ -52,3 +52,33 @@ data/vector_index_cache/
 # Temporary files
 tmp/
 temp/
+temp_tests/
+
+# Backup files
+*.bak
+*.backup
+*~
+*.orig
+*.rej
+*.swp
+*.swo
+*.tmp
+.#*
+#*#
+
+# Editor backup files
+*~
+*.backup
+.*.swp
+.*.swo
+Session.vim
+.viminfo
+
+# macOS backup files
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
