@@ -1,7 +1,8 @@
 /**
  * Hardened server for production use.
- * - Strict CORS allowlist (from env CORS_ORIGINS)
- * - Helmet security headers
+ * - Configuration managed by unified config system
+ * - Strict CORS allowlist
+ * - Helmet security headers  
  * - Rate limiting
  * - JSON size limits
  * - Structured logs with pino
@@ -17,43 +18,43 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import { run, setDefaultOpenAIKey } from '@openai/agents';
 import { triageAgent } from '../agent/triage.js';
-import { loadOpenAIKeyFromSecrets } from '../utils/env.js';
+import { getConfig } from '../utils/config.js';
 
-if (process.env.OPENAI_API_KEY) setDefaultOpenAIKey(process.env.OPENAI_API_KEY);
+export async function createServer() {
+  // 統合設定システムから設定を読み込み
+  const config = await getConfig();
 
-const logger = pino({ level: process.env.LOG_LEVEL ?? 'info' });
-const JSON_LIMIT = process.env.JSON_LIMIT ?? '256kb';
-const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60000);
-const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX ?? 60);
-const MAX_TURNS_DEFAULT = Number(process.env.MAX_TURNS ?? 8);
+  // OpenAI API キーを設定
+  if (config.env.openaiApiKey) {
+    setDefaultOpenAIKey(config.env.openaiApiKey);
+  }
 
-const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+  const logger = pino({ level: config.env.logLevel });
+  
+  // CORS設定
+  const allowedOrigins = config.server.cors.origins;
+  const corsOptions: cors.CorsOptions = {
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      return callback(null, allowedOrigins.includes(origin));
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    maxAge: 600,
+  };
 
-const corsOptions: cors.CorsOptions = {
-  origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    return callback(null, allowedOrigins.includes(origin));
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  maxAge: 600,
-};
+  // レート制限設定
+  const limiter = rateLimit({
+    windowMs: config.env.rateLimitWindowMs,
+    max: config.env.rateLimitMax,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
-const limiter = rateLimit({
-  windowMs: RATE_LIMIT_WINDOW_MS,
-  max: RATE_LIMIT_MAX,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+  const ChatRequest = z.object({
+    input: z.string().min(1).max(1000),
+    maxTurns: z.number().int().min(1).max(20).optional(),
+  });
 
-const ChatRequest = z.object({
-  input: z.string().min(1).max(1000),
-  maxTurns: z.number().int().min(1).max(20).optional(),
-});
-
-export async function startServer(port = Number(process.env.PORT ?? 3000)) {
   const app = express();
 
   app.use(
@@ -64,7 +65,7 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
     }),
   );
   app.use(cors(corsOptions));
-  app.use(express.json({ limit: JSON_LIMIT }));
+  app.use(express.json({ limit: config.env.jsonLimit }));
   app.use(limiter);
   app.use(
     pinoHttp.default({
@@ -85,7 +86,7 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
     try {
       const { input, maxTurns } = parsed.data;
       const result = await run(triageAgent, input, {
-        maxTurns: maxTurns ?? MAX_TURNS_DEFAULT,
+        maxTurns: maxTurns ?? config.env.maxTurns,
       });
       return res.status(200).json({ finalOutput: result.finalOutput });
     } catch (err: any) {
@@ -100,7 +101,16 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
     }
   });
 
-  app.listen(port, () => {
-    logger.info({ port, allowedOrigins }, 'server-started');
+  return app;
+}
+
+export async function startServer(port?: number) {
+  const config = await getConfig();
+  const app = await createServer();
+  const serverPort = port || config.server.port;
+
+  app.listen(serverPort, () => {
+    const logger = pino({ level: config.env.logLevel });
+    logger.info({ port: serverPort, allowedOrigins: config.server.cors.origins }, 'server-started');
   });
 }
