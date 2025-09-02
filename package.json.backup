@@ -8,14 +8,7 @@
     "dev": "tsx src/index.ts",
     "cli": "tsx src/index.ts",
     "build": "tsc -p .",
-    "bootstrap": "sh scripts/bootstrap.sh",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
-    "type-check": "tsc --noEmit"
+    "bootstrap": "sh scripts/bootstrap.sh"
   },
   "engines": {
     "node": ">=18"
