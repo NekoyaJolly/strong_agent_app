@@ -2,6 +2,7 @@ import { Agent, handoff, webSearchTool } from '@openai/agents';
 import { removeAllTools, RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { z } from 'zod';
 import { architectAgent } from './architect.js';
+import { researcherAgent } from './researcher.js';
 import { implementerAgent } from './implementer.js';
 import { reviewerAgent } from './reviewer.js';
 import { testAgent } from './tester.js';
@@ -29,6 +30,7 @@ export const triageAgent = Agent.create({
   inputGuardrails: [noSecretsGuardrail],
   outputGuardrails: [compactJsonGuardrail],
   handoffs: [
+    handoff(researcherAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
     handoff(architectAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
     handoff(implementerAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),
     handoff(reviewerAgent, { inputFilter: removeAllTools, inputType: TriageNoteSchema }),

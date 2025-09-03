@@ -67,3 +67,25 @@ export const DocsUpdate = z.object({
   changelogEntry: z.string(),
 });
 export type DocsUpdate = z.infer<typeof DocsUpdate>;
+
+// ===== Research 出力 =====
+export const ResearchResult = z.object({
+  summary: z.string().describe('リサーチ結果の要約'),
+  findings: z.array(z.object({
+    topic: z.string(),
+    information: z.string(),
+    sources: z.array(z.string()).optional(),
+    relevanceScore: z.number().min(0).max(10)
+  })),
+  recommendations: z.array(z.string()).describe('推奨事項'),
+  technicalConsiderations: z.array(z.string()).describe('技術的考慮事項'),
+  potentialChallenges: z.array(z.string()).describe('想定される課題'),
+  marketAnalysis: z.string().optional().describe('市場分析（該当する場合）'),
+  bestPractices: z.array(z.string()).describe('ベストプラクティス'),
+  references: z.array(z.object({
+    title: z.string(),
+    url: z.string().url(),
+    summary: z.string()
+  })).default([])
+});
+export type ResearchResult = z.infer<typeof ResearchResult>;
