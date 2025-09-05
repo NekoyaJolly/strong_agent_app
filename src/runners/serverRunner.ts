@@ -80,13 +80,16 @@ export async function createServer() {
     optionsSuccessStatus: 200
   };
 
-  // 🔒 Enhanced Rate Limiting for Production Security
-  // 基本レート制限
-  const limiter = rateLimit({
+  // 🔒 Enhanced Rate Limiting v8 - 本番セキュリティ強化
+  // 🚀 Rate Limit v8: draft-8ヘッダサポート、エンドポイント別制限
+  
+  // グローバルレート制限 (全エンドポイント)
+  const globalLimiter = rateLimit({
     windowMs: config.env.rateLimitWindowMs,
     max: config.env.rateLimitMax,
-    standardHeaders: true,
+    standardHeaders: 'draft-8', // ✨ v8新機能: IETF RateLimit headerサポート
     legacyHeaders: false,
+    identifier: 'global-api', // draft-8 quota policy identifier
     message: {
       error: 'Too many requests from this IP, please try again later.',
       retryAfter: Math.ceil(config.env.rateLimitWindowMs / 1000)
@@ -95,21 +98,58 @@ export async function createServer() {
     keyGenerator: (req) => {
       return `${req.ip}_${req.get('User-Agent') || 'unknown'}`;
     },
-    // 成功時のリセット (連続失敗のみペナルティ)
     skipSuccessfulRequests: false,
     skipFailedRequests: false,
   });
 
-  // 🛡️ ブルートフォース攻撃対策 (API エンドポイント専用)
-  const strictLimiter = rateLimit({
-    windowMs: isProduction ? 15 * 60 * 1000 : 60 * 1000, // 本番: 15分, 開発: 1分
-    max: isProduction ? 5 : 20, // 本番: 5回, 開発: 20回
-    standardHeaders: true,
+  // 🛡️ API エンドポイント専用の厳格制限
+  const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1分間
+    max: config.env.nodeEnv === 'production' ? 30 : 100,
+    standardHeaders: 'draft-8',
     legacyHeaders: false,
+    identifier: 'api-endpoints', // API専用識別子
     message: {
-      error: 'Too many API requests. Please wait before retrying.',
-      type: 'RATE_LIMIT_EXCEEDED'
+      error: 'API rate limit exceeded',
+      retryAfter: 60
     },
+    keyGenerator: (req) => {
+      return `api_${req.ip}_${req.path}`;
+    },
+    handler: (req, res) => {
+      logger.warn(`API rate limit exceeded for ${req.ip} on ${req.path}`);
+      res.status(429).json({
+        error: 'Too many API requests',
+        message: 'Please wait before making more requests',
+        retryAfter: 60,
+        path: req.path
+      });
+    }
+  });
+
+  // 🔥 認証エンドポイント用の最も厳格な制限
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15分間
+    max: isProduction ? 5 : 20, // 本番: 5回, 開発: 20回
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    identifier: 'authentication', // 認証専用識別子
+    message: {
+      error: 'Too many authentication requests. Please wait before retrying.',
+      type: 'AUTH_RATE_LIMIT_EXCEEDED',
+      retryAfter: 900 // 15分
+    },
+    keyGenerator: (req) => {
+      return `auth_${req.ip}`;
+    },
+    handler: (req, res) => {
+      logger.warn(`Authentication rate limit exceeded for ${req.ip}`);
+      res.status(429).json({
+        error: 'Too many authentication attempts',
+        message: 'Please wait 15 minutes before trying again',
+        retryAfter: 900
+      });
+    }
   });
 
   const ChatRequest = z.object({
@@ -198,27 +238,7 @@ export async function createServer() {
   }
   app.use(cors(corsOptions));
   app.use(express.json({ limit: config.env.jsonLimit }));
-  app.use(limiter);
-
-  // API エンドポイント用の厳格なレート制限
-  const apiLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1分
-    max: config.env.nodeEnv === 'production' ? 30 : 100, // 本番: 30req/min, 開発: 100req/min
-    message: {
-      error: 'Too many API requests',
-      retryAfter: 60
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-    handler: (req, res) => {
-      logger.warn('API rate limit exceeded for IP: ' + req.ip);
-      res.status(429).json({
-        error: 'Too many API requests',
-        message: 'Please wait before making more requests',
-        retryAfter: 60
-      });
-    }
-  });
+  app.use(globalLimiter); // v8対応グローバルレート制限
 
   // セキュリティエラーハンドリング
   const securityErrorHandler = (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -240,6 +260,30 @@ export async function createServer() {
       logger,
       genReqId: (req: any) =>
         String(req.headers['x-request-id'] ?? crypto.randomUUID()),
+      // 🔒 ログリダクション - 機密情報の自動削除
+      redact: {
+        paths: [
+          // リクエストヘッダーの機密情報
+          'req.headers.authorization',
+          'req.headers["x-api-key"]',
+          'req.headers.cookie',
+          'req.headers["x-auth-token"]',
+          // レスポンスヘッダーの機密情報
+          'res.headers["set-cookie"]',
+          'res.headers["x-auth-token"]',
+          // リクエストボディの機密情報
+          'req.body.password',
+          'req.body.apiKey',
+          'req.body.token',
+          'req.body.secret',
+          'req.body.authToken',
+          // ネストされた機密データ
+          'req.body.user.password',
+          'req.body.credentials.password',
+          'req.body.auth.token'
+        ],
+        remove: true // 機密情報を完全に削除（マスクではなく）
+      }
     }),
   );
 
