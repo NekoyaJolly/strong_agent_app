@@ -4,7 +4,7 @@ import { Agent } from '@openai/agents';
 // 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
 const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
 import { TestReport } from './schemas.js';
-import { TestRunner, TestExecutionResult } from '../utils/testRunner.js';
+import { TestRunner, TestExecutionResult as _TestExecutionResult } from '../utils/testRunner.js';
 import { Logger } from '../utils/logger.js';
 
 export const testAgent = new Agent({

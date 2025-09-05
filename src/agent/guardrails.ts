@@ -6,9 +6,9 @@ export const noSecretsGuardrail: InputGuardrail = {
   async execute({ input }) {
     const text = typeof input === 'string' ? input : JSON.stringify(input);
     const token =
-      /(sk-[A-Za-z0-9_\-]{10,})/i.test(text) ||
+      /(sk-[A-Za-z0-9_-]{10,})/i.test(text) ||
       /api[_-]?key/i.test(text) ||
-      /authorization:\s*bearer\s+[A-Za-z0-9\._\-]+/i.test(text);
+      /authorization:\s*bearer\s+[A-Za-z0-9._-]+/i.test(text);
     return { tripwireTriggered: token, outputInfo: { token } };
   },
 };
