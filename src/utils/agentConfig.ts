@@ -3,46 +3,58 @@ import {
   setDefaultOpenAIKey, 
   setTracingDisabled,
   setTracingExportApiKey,
+  startTraceExportLoop,
   getLogger 
 } from '@openai/agents';
 
 /**
- * OpenAI Agents SDK の初期設定を行う
- * アプリケーション起動時に一度だけ実行する
+ * OpenAI Agents SDK の初期化
+ * アプリケーション起動時に一度だけ呼び出す
  */
-export function initializeAgentSDK() {
-  // 1. APIキー設定
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+export function initializeAgentSDK(): void {
+  console.log('🔧 [AgentSDK] Initializing OpenAI Agents SDK...');
+
+  // 1. OpenAI API Key の設定
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!openaiKey) {
     throw new Error('OPENAI_API_KEY environment variable is required');
   }
-  setDefaultOpenAIKey(apiKey);
+  setDefaultOpenAIKey(openaiKey);
+  console.log('✅ [AgentSDK] OpenAI API Key configured');
 
-  // 2. 環境別トレーシング設定
-  if (process.env.NODE_ENV === 'test') {
-    // テスト環境：トレーシングを無効化（外部通信を防止）
-    setTracingDisabled(true);
-    console.log('🧪 Test environment: Tracing disabled');
+  // 2. トレーシング設定
+  const tracingDisabled = process.env.TRACING_DISABLED === 'true' || process.env.NODE_ENV === 'test';
+  setTracingDisabled(tracingDisabled);
+  
+  if (tracingDisabled) {
+    console.log('🚫 [AgentSDK] Tracing disabled');
   } else {
-    // 開発・本番環境：トレーシングを有効化
-    setTracingExportApiKey(apiKey);
-    console.log(`🚀 ${process.env.NODE_ENV || 'development'} environment: Tracing enabled`);
+    console.log('📊 [AgentSDK] Tracing enabled');
+    
+    // 3. トレーシング API Key とエクスポートループの設定
+    const tracingApiKey = process.env.OPENAI_TRACING_API_KEY;
+    if (tracingApiKey) {
+      setTracingExportApiKey(tracingApiKey);
+      startTraceExportLoop(); // 非同期エクスポート開始
+      console.log('📤 [AgentSDK] Trace export loop started');
+    } else {
+      console.log('⚠️ [AgentSDK] OPENAI_TRACING_API_KEY not provided - traces will not be exported');
+    }
   }
 
-  // 3. 開発環境でのデバッグログ設定
+  // 4. 環境別設定
   if (process.env.NODE_ENV === 'development') {
     process.env.DEBUG = 'openai-agents*';
-    console.log('🔍 Debug logging enabled for OpenAI Agents');
+    console.log('🔍 [AgentSDK] Debug logging enabled for development');
   }
 
-  // 4. 本番環境での敏感データ保護
   if (process.env.NODE_ENV === 'production') {
     process.env.OPENAI_AGENTS_DONT_LOG_MODEL_DATA = '1';
     process.env.OPENAI_AGENTS_DONT_LOG_TOOL_DATA = '1';
-    console.log('🔒 Production mode: Sensitive data logging disabled');
+    console.log('🔒 [AgentSDK] Production mode: Sensitive data logging disabled');
   }
 
-  console.log('✅ OpenAI Agents SDK initialized successfully');
+  console.log('🎉 [AgentSDK] OpenAI Agents SDK initialization complete');
 }
 
 /**
