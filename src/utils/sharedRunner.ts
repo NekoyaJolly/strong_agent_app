@@ -38,7 +38,7 @@ class SharedRunnerManager {
    */
   initialize(options: RunnerInitOptions = {}): void {
     if (this.isInitialized) {
-      console.warn('[WorkflowLogger] Runner is already initialized');
+      console.warn('[SharedRunner] Runner is already initialized');
       return;
     }
 
@@ -49,17 +49,20 @@ class SharedRunnerManager {
       traceIncludeSensitiveData: options.traceIncludeSensitiveData ?? (process.env.NODE_ENV !== 'production'),
       traceMetadata: {
         environment: process.env.NODE_ENV || 'development',
-        version: process.env.npm_package_version || '1.0.0'
+        version: process.env.npm_package_version || '1.0.0',
+        application: 'strong-agent-app',
+        nodeVersion: process.version
       }
     };
 
     this.runner = new Runner(config);
     this.isInitialized = true;
 
-    console.log('✅ [WorkflowLogger] Shared Runner instance initialized:', {
+    console.log('✅ [SharedRunner] Runner instance initialized:', {
       model: config.model,
       workflowName: config.workflowName,
-      tracingDisabled: config.tracingDisabled
+      tracingDisabled: config.tracingDisabled,
+      traceMetadata: config.traceMetadata
     });
   }
 

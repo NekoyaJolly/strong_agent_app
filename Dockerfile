@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7-labs
-ARG NODE_VERSION=20.16-bookworm-slim
+ARG NODE_VERSION=22-bookworm-slim
 
 # 1) deps + build（dev依存を含めてビルド）
 FROM node:${NODE_VERSION} AS build

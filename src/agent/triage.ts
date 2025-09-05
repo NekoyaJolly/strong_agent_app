@@ -1,6 +1,14 @@
 import { Agent, handoff, webSearchTool } from '@openai/agents';
-import { removeAllTools, RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { z } from 'zod';
+
+// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
+const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
+
+// ツール除去フィルター（@openai/agents-core/extensionsのremoveAllToolsから移行）
+const removeAllTools = (data: any) => ({
+  ...data,
+  newItems: data.newItems.filter((item: any) => item.type !== 'tool_call')
+});
 import { architectAgent } from './architect.js';
 import { researcherAgent } from './researcher.js';
 import { implementerAgent } from './implementer.js';

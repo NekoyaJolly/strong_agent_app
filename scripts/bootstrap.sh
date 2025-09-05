@@ -12,17 +12,17 @@ echo "====================================="
 check_nodejs() {
     if ! command -v node &> /dev/null; then
         echo "❌ Node.js がインストールされていません"
-        echo "   Node.js v18 以上をインストールしてください"
+        echo "   Node.js v22 以上をインストールしてください"
         exit 1
     fi
     
     NODE_VERSION=$(node --version | sed 's/v//')
-    REQUIRED_VERSION="18.0.0"
+    REQUIRED_VERSION="22.0.0"
     
     if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$NODE_VERSION" | sort -V | head -n1)" = "$REQUIRED_VERSION" ]; then 
         echo "✅ Node.js $NODE_VERSION が見つかりました"
     else
-        echo "❌ Node.js v18 以上が必要です（現在: v$NODE_VERSION）"
+        echo "❌ Node.js v22 以上が必要です（現在: v$NODE_VERSION）"
         exit 1
     fi
 }

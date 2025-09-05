@@ -1,7 +1,9 @@
-// src/agent/researcher.ts
+// src/agents/researcher.ts
 import { Agent, webSearchTool } from '@openai/agents';
-import { RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { z } from 'zod';
+
+// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
+const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
 
 export const ResearchResultSchema = z.object({
   summary: z.string().describe('リサーチ結果の要約'),
