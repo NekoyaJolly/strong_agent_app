@@ -35,15 +35,49 @@ export async function createServer() {
 
   const logger = pino({ level: config.env.logLevel });
   
-  // CORS設定
-  const allowedOrigins = config.server.cors.origins;
-  const corsOptions: cors.CorsOptions = {
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
-      return callback(null, allowedOrigins.includes(origin));
+  // 🔒 CORS設定の厳格化 - セキュリティ強化
+  // 動的オリジン検証による本番環境セキュリティ
+  const corsOriginsString = Array.isArray(config.server.cors.origins) 
+    ? config.server.cors.origins.join(',') 
+    : (config.server.cors.origins ?? '');
+    
+  const allowedOrigins = new Set(corsOriginsString
+    .split(',')
+    .map((origin: string) => origin.trim())
+    .filter(Boolean)
+  );
+
+  const corsOptions = {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // オリジンなしのリクエスト (curl, モバイルアプリ等) を許可
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      try {
+        // URLオブジェクトでオリジンを正規化・検証
+        const normalizedOrigin = new URL(origin).origin;
+        const isAllowed = allowedOrigins.has(normalizedOrigin);
+        
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          // セキュリティログ出力
+          logger.warn(`CORS violation: Unauthorized origin attempted access: ${normalizedOrigin}`);
+          callback(new Error('CORS: Origin not allowed'), false);
+        }
+      } catch (error) {
+        // 不正なURL形式のオリジンを拒否
+        logger.warn(`CORS violation: Invalid origin format: ${origin}`);
+        callback(new Error('CORS: Invalid origin format'), false);
+      }
     },
+    credentials: true, // 認証情報を含むリクエストを許可
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     methods: ['GET', 'POST', 'OPTIONS'],
-    maxAge: 600,
+    maxAge: 600, // プリフライトキャッシュ時間
+    // レガシーブラウザ対応
+    optionsSuccessStatus: 200
   };
 
   // 🔒 Enhanced Rate Limiting for Production Security
