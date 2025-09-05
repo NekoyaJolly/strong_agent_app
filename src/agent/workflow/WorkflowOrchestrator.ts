@@ -1,5 +1,6 @@
 // src/agent/workflow/WorkflowOrchestrator.ts
-import { ProjectContext, ProjectContextManager, WorkflowStage, WorkflowStatus } from './ProjectContext.js';
+import type { ProjectContext} from './ProjectContext.js';
+import { ProjectContextManager, WorkflowStage, WorkflowStatus } from './ProjectContext.js';
 import { triageAgent } from '../triage.js';
 import { researcherAgent } from '../researcher.js';
 import { architectAgent } from '../architect.js';
@@ -9,7 +10,8 @@ import { reviewerAgent } from '../reviewer.js';
 import { devopsAgent } from '../devops.js';
 import { docsAgent } from '../docs.js';
 import { logger } from '../../utils/logger.js';
-import { SafeAgentRunner, AgentRunResult } from '../../utils/agentRunner.js';
+import type { AgentRunResult } from '../../utils/agentRunner.js';
+import { SafeAgentRunner } from '../../utils/agentRunner.js';
 
 export interface WorkflowConfig {
   maxTurns?: number;
@@ -213,7 +215,7 @@ export class WorkflowOrchestrator {
     currentStep.startedAt = new Date();
 
     const context = this.contextManager.getContext();
-    let input = this.buildInputForStage(currentStep.stage, context);
+    const input = this.buildInputForStage(currentStep.stage, context);
     let agentResult: AgentRunResult = { success: false, error: 'Unknown error' }; // 初期化
 
     switch (currentStep.stage) {
@@ -382,8 +384,7 @@ Triageの結果: ${JSON.stringify(context.triageResult, null, 2)}
     }
     
     // レビューでエラーが見つかった場合
-    if (context.reviewReport && 
-        context.reviewReport.issues.some(issue => issue.severity === 'error')) {
+    if (context.reviewReport?.issues.some(issue => issue.severity === 'error')) {
       return true;
     }
     

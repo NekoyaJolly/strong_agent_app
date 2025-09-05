@@ -1,6 +1,7 @@
 // src/utils/agentRunner.ts - エラー耐性のあるエージェント実行ラッパー
+import type { 
+  Agent} from '@openai/agents';
 import { 
-  Agent, 
   MaxTurnsExceededError,
   ModelBehaviorError,
   GuardrailExecutionError,
@@ -158,7 +159,7 @@ export class SafeAgentRunner {
     options: AgentRunOptions = {}
   ): Promise<AgentRunResult> {
     const { retries = 2, ...runOptions } = options;
-    let lastError: string = '';
+    let lastError = '';
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       const result = await this.runAgent(agent, input, runOptions);

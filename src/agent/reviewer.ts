@@ -135,7 +135,7 @@ export class EnhancedReviewer {
     return `静的解析完了: ${errorCount}個のエラー、${warningCount}個の警告を検出。スコア: ${score}/100`;
   }
 
-  private generateActionItems(issues: any[]): Array<{ id: string, title: string, detail: string, estimateH?: number }> {
+  private generateActionItems(issues: any[]): { id: string, title: string, detail: string, estimateH?: number }[] {
     const actionItems = [];
     
     const errorCount = issues.filter(issue => issue.severity === 'error').length;

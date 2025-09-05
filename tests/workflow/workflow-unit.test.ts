@@ -1,7 +1,8 @@
 // tests/workflow/workflow-unit.test.ts
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import type { 
+  ProjectContext} from '../../src/agent/workflow/ProjectContext.js';
 import { 
-  ProjectContext, 
   ProjectContextManager, 
   WorkflowStage, 
   WorkflowStatus 

@@ -5,7 +5,7 @@
 export class DeployTool {
   private approvalRequired: boolean;
 
-  constructor(approvalRequired: boolean = true) {
+  constructor(approvalRequired = true) {
     this.approvalRequired = approvalRequired;
   }
 

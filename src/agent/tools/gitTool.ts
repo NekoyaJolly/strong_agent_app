@@ -46,7 +46,7 @@ export class GitTool {
     }
   }
 
-  async push(branch: string = 'main'): Promise<void> {
+  async push(branch = 'main'): Promise<void> {
     try {
       await execAsync(`git push origin ${branch}`, {
         cwd: this.workingDirectory

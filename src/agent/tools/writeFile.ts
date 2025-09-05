@@ -3,7 +3,7 @@ import path from 'node:path';
 import { tool } from '@openai/agents';
 import { z } from 'zod';
 
-type AllowConfig = { allow: string[] };
+interface AllowConfig { allow: string[] }
 
 async function loadAllowlist(): Promise<AllowConfig> {
   try {

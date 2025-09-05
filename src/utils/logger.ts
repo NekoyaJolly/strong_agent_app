@@ -6,7 +6,7 @@ export class Logger {
   private traceId: string;
   private context: string;
 
-  constructor(context: string = 'DefaultContext') {
+  constructor(context = 'DefaultContext') {
     this.context = context;
     this.traceId = this.generateTraceId();
   }

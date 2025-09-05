@@ -1,4 +1,4 @@
-import { InputGuardrail, OutputGuardrail } from '@openai/agents';
+import type { InputGuardrail, OutputGuardrail } from '@openai/agents';
 
 // 1) Basic secret-token leak prevention
 export const noSecretsGuardrail: InputGuardrail = {

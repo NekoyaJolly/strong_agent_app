@@ -3,9 +3,9 @@
  * コード実行機能のラッパー
  */
 export class CodeInterpreterWrapper {
-  private sandboxMode: boolean = true;
+  private sandboxMode = true;
   private allowedLanguages: string[] = ['javascript', 'typescript', 'python'];
-  private timeout: number = 30000; // 30秒
+  private timeout = 30000; // 30秒
 
   constructor(options?: CodeInterpreterOptions) {
     if (options) {

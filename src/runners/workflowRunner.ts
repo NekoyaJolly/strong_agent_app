@@ -1,6 +1,7 @@
 // src/runners/workflowRunner.ts
-import { WorkflowOrchestrator, WorkflowConfig, ApprovalHandler } from '../agent/workflow/WorkflowOrchestrator.js';
-import { ProjectContext, WorkflowStage } from '../agent/workflow/ProjectContext.js';
+import type { WorkflowConfig, ApprovalHandler } from '../agent/workflow/WorkflowOrchestrator.js';
+import { WorkflowOrchestrator } from '../agent/workflow/WorkflowOrchestrator.js';
+import type { ProjectContext, WorkflowStage } from '../agent/workflow/ProjectContext.js';
 import { getConfig } from '../utils/config.js';
 import { logger } from '../utils/logger.js';
 

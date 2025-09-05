@@ -4,7 +4,7 @@
  */
 export class FileSearchIntegrator {
   private vectorStoreId: string | null = null;
-  private isInitialized: boolean = false;
+  private isInitialized = false;
 
   constructor(vectorStoreId?: string) {
     this.vectorStoreId = vectorStoreId || null;

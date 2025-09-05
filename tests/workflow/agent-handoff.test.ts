@@ -420,7 +420,7 @@ describe('Agent Handoff and Communication Tests', () => {
       };
 
       // Simulate data flowing through multiple agents
-      let currentData = { ...originalData };
+      const currentData = { ...originalData };
 
       // Triage -> Architect
       const triageHandoff = {

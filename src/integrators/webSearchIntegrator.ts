@@ -4,7 +4,7 @@
  */
 export class WebSearchIntegrator {
   private apiKey: string | null = null;
-  private baseUrl: string = 'https://api.search.example.com';
+  private baseUrl = 'https://api.search.example.com';
   private defaultOptions: WebSearchOptions;
 
   constructor(apiKey?: string, options?: Partial<WebSearchOptions>) {
