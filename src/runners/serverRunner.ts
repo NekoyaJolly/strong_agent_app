@@ -24,6 +24,10 @@ export async function createServer() {
   // 統合設定システムから設定を読み込み
   const config = await getConfig();
 
+  // 🔒 Environment-based security configuration
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   // OpenAI API キーを設定
   if (config.env.openaiApiKey) {
     setDefaultOpenAIKey(config.env.openaiApiKey);
@@ -42,12 +46,36 @@ export async function createServer() {
     maxAge: 600,
   };
 
-  // レート制限設定
+  // 🔒 Enhanced Rate Limiting for Production Security
+  // 基本レート制限
   const limiter = rateLimit({
     windowMs: config.env.rateLimitWindowMs,
     max: config.env.rateLimitMax,
     standardHeaders: true,
     legacyHeaders: false,
+    message: {
+      error: 'Too many requests from this IP, please try again later.',
+      retryAfter: Math.ceil(config.env.rateLimitWindowMs / 1000)
+    },
+    // カスタムキー生成 (IP + User-Agent でより厳密に)
+    keyGenerator: (req) => {
+      return `${req.ip}_${req.get('User-Agent') || 'unknown'}`;
+    },
+    // 成功時のリセット (連続失敗のみペナルティ)
+    skipSuccessfulRequests: false,
+    skipFailedRequests: false,
+  });
+
+  // 🛡️ ブルートフォース攻撃対策 (API エンドポイント専用)
+  const strictLimiter = rateLimit({
+    windowMs: isProduction ? 15 * 60 * 1000 : 60 * 1000, // 本番: 15分, 開発: 1分
+    max: isProduction ? 5 : 20, // 本番: 5回, 開発: 20回
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: 'Too many API requests. Please wait before retrying.',
+      type: 'RATE_LIMIT_EXCEEDED'
+    },
   });
 
   const ChatRequest = z.object({
@@ -57,16 +85,122 @@ export async function createServer() {
 
   const app = express();
 
+  // 🔒 Production Security Configuration
+  // Enhanced Helmet configuration for production
   app.use(
     helmet({
-      contentSecurityPolicy: false,
-      crossOriginEmbedderPolicy: false,
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      // Content Security Policy - 本番では厳格、開発では緩和
+      contentSecurityPolicy: isProduction ? {
+        directives: {
+          defaultSrc: ["'none'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"], // CSS-in-JSライブラリ対応
+          imgSrc: ["'self'", "data:", "https:"],
+          connectSrc: ["'self'", "https:"], // API通信用
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
+          frameSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          upgradeInsecureRequests: [],
+        },
+      } : false, // 開発環境では無効化
+
+      // Cross-Origin policies
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginResourcePolicy: { 
+        policy: isProduction ? 'same-site' : 'cross-origin' 
+      },
+      crossOriginEmbedderPolicy: false, // API サーバーなので無効
+
+      // Referrer policy
+      referrerPolicy: { policy: 'no-referrer' },
+
+      // HTTP Strict Transport Security (HTTPS強制)
+      hsts: isProduction ? {
+        maxAge: 15552000, // 180日
+        includeSubDomains: true,
+        preload: true
+      } : false, // 開発環境では無効
+
+      // X-Frame-Options (Clickjacking防止)
+      frameguard: { action: 'deny' },
+
+      // X-Content-Type-Options (MIME sniffing防止)
+      noSniff: true,
+
+      // X-DNS-Prefetch-Control
+      dnsPrefetchControl: { allow: false },
+
+      // X-Download-Options (IE用)
+      ieNoOpen: true,
+
+      // X-Permitted-Cross-Domain-Policies
+      permittedCrossDomainPolicies: false,
     }),
   );
+
+  // セキュリティヘッダーの追加設定
+  if (isProduction) {
+    // X-Powered-By ヘッダーを削除 (fingerprinting対策)
+    app.disable('x-powered-by');
+    
+    // 追加のセキュリティヘッダー
+    app.use((req, res, next) => {
+      // Expect-CT ヘッダー (Certificate Transparency)
+      res.setHeader('Expect-CT', 'max-age=86400, enforce');
+      
+      // Feature-Policy / Permissions-Policy
+      res.setHeader('Permissions-Policy', 
+        'camera=(), microphone=(), geolocation=(), payment=()'
+      );
+      
+      // Server情報の隠蔽
+      res.removeHeader('Server');
+      
+      next();
+    });
+  }
   app.use(cors(corsOptions));
   app.use(express.json({ limit: config.env.jsonLimit }));
   app.use(limiter);
+
+  // API エンドポイント用の厳格なレート制限
+  const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1分
+    max: config.env.nodeEnv === 'production' ? 30 : 100, // 本番: 30req/min, 開発: 100req/min
+    message: {
+      error: 'Too many API requests',
+      retryAfter: 60
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res) => {
+      logger.warn('API rate limit exceeded for IP: ' + req.ip);
+      res.status(429).json({
+        error: 'Too many API requests',
+        message: 'Please wait before making more requests',
+        retryAfter: 60
+      });
+    }
+  });
+
+  // セキュリティエラーハンドリング
+  const securityErrorHandler = (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    logger.error(`Security error: ${err.message}`);
+
+    // セキュリティエラーの詳細を本番環境では隠蔽
+    const message = config.env.nodeEnv === 'production' 
+      ? 'Internal server error' 
+      : err.message;
+
+    res.status(500).json({
+      error: message,
+      timestamp: new Date().toISOString()
+    });
+  };
+
   app.use(
     pinoHttp.default({
       logger,
@@ -77,7 +211,8 @@ export async function createServer() {
 
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 
-  app.post('/chat', async (req, res) => {
+  // API エンドポイントに厳格なレート制限を適用
+  app.post('/chat', apiLimiter, async (req, res) => {
     const parsed = ChatRequest.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: 'invalid_request', details: parsed.error.flatten() });
@@ -100,6 +235,9 @@ export async function createServer() {
       return res.status(500).json({ error: 'internal_error', message: String(err?.message ?? err) });
     }
   });
+
+  // セキュリティエラーハンドラーを最後に追加
+  app.use(securityErrorHandler);
 
   return app;
 }
