@@ -145,7 +145,7 @@ class ConfigManager {
   }
 
   public static getInstance(): ConfigManager {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+     
     if (!ConfigManager.instance) {
       ConfigManager.instance = new ConfigManager();
     }
@@ -279,9 +279,9 @@ class ConfigManager {
    * オブジェクトの深いマージ（undefinedは無視）
    */
   private deepMerge(target: UnknownConfigObject, source: UnknownConfigObject): UnknownConfigObject {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+     
     if (!source || typeof source !== 'object') return target;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+     
     if (!target || typeof target !== 'object') return source;
 
     const result = { ...target };

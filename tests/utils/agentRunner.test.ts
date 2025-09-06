@@ -1,5 +1,5 @@
 // tests/utils/agentRunner.test.ts - Phase 1 OpenAI Agent Integration Test for AgentRunner Functions
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vitest';
 import { runAgent, runAgentWithRetry } from '../../src/utils/agentRunner.js';
 import { initializeAgentSDK } from '../../src/utils/agentConfig.js';

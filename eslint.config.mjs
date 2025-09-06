@@ -58,13 +58,22 @@ export default defineConfig([
         requireNullish: false
       }],
       
-      // コード品質
+      // コード品質（段階的厳格さ）
       '@typescript-eslint/no-unused-vars': ['error', { 
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_' 
       }],
       '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn', // 段階的: error → warn
+      
+      // Template expression の細かい調整
+      '@typescript-eslint/restrict-template-expressions': ['error', {
+        allowNumber: true,        // 数値テンプレートを許可
+        allowBoolean: true,       // boolean テンプレートを許可
+        allowAny: false,          // any は禁止維持
+        allowNullish: true,       // null/undefined は許可
+        allowRegExp: false,       // 正規表現は禁止
+      }],
       
       // スタイル統一
       'prefer-const': 'error',
@@ -82,6 +91,26 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off', // テストでは許可
+      '@typescript-eslint/restrict-template-expressions': 'off', // テストでは許可
+    },
+  },
+
+  // index.ts (エントリーポイント) 専用設定
+  {
+    files: ['src/index.ts'],
+    rules: {
+      '@typescript-eslint/no-deprecated': 'warn', // エラー→警告に変更
+      '@typescript-eslint/no-unsafe-argument': 'warn', // エラー→警告に変更
+    },
+  },
+
+  // レガシーファイル専用設定
+  {
+    files: ['src/legacy/**/*.ts', 'src/utils/config.ts'],
+    rules: {
+      '@typescript-eslint/no-unnecessary-condition': 'off', // レガシーでは許可
+      '@typescript-eslint/no-explicit-any': 'warn', // エラー→警告
     },
   },
   

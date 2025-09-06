@@ -1,5 +1,5 @@
 // tests/workflow/agent-handoff.test.ts
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+ 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Agent, handoff } from '@openai/agents';
 import { z } from 'zod';
