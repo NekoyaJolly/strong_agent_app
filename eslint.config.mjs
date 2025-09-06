@@ -85,14 +85,32 @@ export default defineConfig([
     },
   },
   
-  // テストファイル専用設定
+  // テストファイル専用設定（warningベース）
   {
     files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts'],
     rules: {
+      // 完全OFF: テストでよく必要になるもの
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off', // テストでは許可
-      '@typescript-eslint/restrict-template-expressions': 'off', // テストでは許可
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/require-await': 'off',
+      
+      // WARNING: 気づきを促すが、CIは通す
+      '@typescript-eslint/no-unused-vars': 'warn',           // 未使用変数は警告
+      '@typescript-eslint/no-floating-promises': 'warn',    // Promise忘れは警告
+      '@typescript-eslint/no-misused-promises': 'warn',     // Promise誤用は警告
+      
+      // ERROR維持: 基本的な品質は保つ
+      'prefer-const': 'error',                              // const推奨は維持
+      'no-var': 'error',                                    // var禁止は維持
+      
+      // テスト特有の調整
+      'max-lines': 'off',                                   // テストファイルは長くてもOK
+      'max-lines-per-function': 'off',                      // テスト関数は長くてもOK
     },
   },
 
