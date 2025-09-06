@@ -29,8 +29,34 @@ export default defineConfig([
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/prefer-nullish-coalescing': 'error',
-      '@typescript-eslint/prefer-optional-chain': 'error',
+      
+      // 安全性重視：?? と ?. の強制（戦略的設定）
+      '@typescript-eslint/prefer-nullish-coalescing': ['error', {
+        // 文字列も厳密チェック（空文字を誤って削除しない）
+        ignorePrimitives: { 
+          string: false,    // 空文字を保持する安全策
+          number: false,    // 0を保持する安全策  
+          boolean: false,   // falseを保持する安全策
+          bigint: false     // 0nを保持する安全策
+        },
+        // 条件式内での || は許可（意図的なfalsy活用）
+        ignoreConditionalTests: true,
+        // 混合論理式は慎重に（&& との組み合わせ）
+        ignoreMixedLogicalExpressions: false
+      }],
+      '@typescript-eslint/prefer-optional-chain': ['error', {
+        // 戻り値型変更の自動修正は安全重視で無効
+        allowPotentiallyUnsafeFixesThatModifyTheReturnTypeIKnowWhatImDoing: false,
+        // 各型での厳密チェック
+        checkAny: true,       // any型も厳密チェック
+        checkUnknown: true,   // unknown型も厳密チェック
+        checkString: true,    // string型でも ?. 推奨
+        checkNumber: true,    // number型でも ?. 推奨
+        checkBoolean: true,   // boolean型でも ?. 推奨
+        checkBigInt: true,    // bigint型でも ?. 推奨
+        // null/undefined を含む型のみチェック（現実的バランス）
+        requireNullish: false
+      }],
       
       // コード品質
       '@typescript-eslint/no-unused-vars': ['error', { 

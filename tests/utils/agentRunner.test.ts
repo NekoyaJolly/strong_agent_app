@@ -1,6 +1,7 @@
-// tests/utils/agentRunner.test.ts - Phase 1 OpenAI Agents SDK Integration Test
+// tests/utils/agentRunner.test.ts - Phase 1 OpenAI Agent Integration Test for AgentRunner Functions
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vitest';
-import { SafeAgentRunner } from '../../src/utils/agentRunner.js';
+import { runAgent, runAgentWithRetry } from '../../src/utils/agentRunner.js';
 import { initializeAgentSDK } from '../../src/utils/agentConfig.js';
 
 // Mock modules
@@ -45,6 +46,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
     };
     
     // Mock getSharedRunner to return our mock
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     vi.mocked(getSharedRunner).mockReturnValue(mockRunner);
   });
 
@@ -63,7 +65,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
       ]
     } as any);
 
-    const result = await SafeAgentRunner.runAgent(mockAgent, 'Test input');
+    const result = await runAgent(mockAgent, 'Test input');
 
     expect(result.success).toBe(true);
     expect(result.data).toBe('Success response');
@@ -77,7 +79,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
   it('should handle agent execution errors', async () => {
     mockRunner.run.mockRejectedValue(new Error('Execution failed'));
 
-    const result = await SafeAgentRunner.runAgent(mockAgent, 'Test input');
+    const result = await runAgent(mockAgent, 'Test input');
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Execution failed');
@@ -92,10 +94,10 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
         usage: { totalTokens: 100 }
       } as any);
 
-    const result = await SafeAgentRunner.runAgentWithRetry(
+    const result = await runAgentWithRetry(
       mockAgent, 
       'Test input', 
-      { retries: 2 }
+      2
     );
 
     expect(result.success).toBe(true);
@@ -106,10 +108,10 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
   it('should fail after max retries', async () => {
     mockRunner.run.mockRejectedValue(new Error('Persistent error'));
 
-    const result = await SafeAgentRunner.runAgentWithRetry(
+    const result = await runAgentWithRetry(
       mockAgent, 
       'Test input', 
-      { retries: 2 }
+      2
     );
 
     expect(result.success).toBe(false);
@@ -122,7 +124,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
     // Mock empty but valid response with finalOutput
     mockRunner.run.mockResolvedValue({ finalOutput: {} } as any);
 
-    const result = await SafeAgentRunner.runAgent(mockAgent, 'Test input');
+    const result = await runAgent(mockAgent, 'Test input');
 
     expect(result.success).toBe(true);
     expect(result.data).toEqual({});
@@ -142,7 +144,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
       
       freshMockRunner.run.mockResolvedValue(testCase.mockValue as any);
       
-      const result = await SafeAgentRunner.runAgent(mockAgent, 'Test input');
+      const result = await runAgent(mockAgent, 'Test input');
       
       // Should always return a structured result
       expect(result).toHaveProperty('success');
@@ -154,12 +156,12 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
   it('should validate agent configuration', async () => {
     // First test a simple success case to establish baseline
     mockRunner.run.mockResolvedValue({ finalOutput: 'test' } as any);
-    const validResult = await SafeAgentRunner.runAgent(mockAgent, 'Test input');
+    const validResult = await runAgent(mockAgent, 'Test input');
     expect(validResult.success).toBe(true);
 
     // Then test that null agents will still try to execute but may fail
     mockRunner.run.mockRejectedValue(new Error('Invalid agent'));
-    const invalidResult = await SafeAgentRunner.runAgent(null as any, 'Test input');
+    const invalidResult = await runAgent(null as any, 'Test input');
     expect(invalidResult.success).toBe(false);
     expect(invalidResult.error).toBe('Invalid agent');
   });
@@ -171,7 +173,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
     } as any);
 
     // Test basic execution - message history preservation is handled by the Runner
-    const result = await SafeAgentRunner.runAgent(mockAgent, 'New input');
+    const result = await runAgent(mockAgent, 'New input');
 
     expect(result.success).toBe(true);
     expect(result.data).toBe('New response');

@@ -1,6 +1,5 @@
 // src/utils/sharedRunner.ts - グローバルRunnerインスタンス管理
 import { Runner } from '@openai/agents';
-import { workflowLogger } from './agentConfig.js';
 
 /**
  * Runner初期化オプション
@@ -43,13 +42,13 @@ class SharedRunnerManager {
     }
 
     const config = {
-      model: options.model || 'gpt-4o',
-      workflowName: options.workflowName || 'Strong Agent Workflow',
+      model: options.model ?? 'gpt-4o',
+      workflowName: options.workflowName ?? 'Strong Agent Workflow',
       tracingDisabled: options.tracingDisabled ?? (process.env.NODE_ENV === 'test'),
       traceIncludeSensitiveData: options.traceIncludeSensitiveData ?? (process.env.NODE_ENV !== 'production'),
       traceMetadata: {
-        environment: process.env.NODE_ENV || 'development',
-        version: process.env.npm_package_version || '1.0.0',
+        environment: process.env.NODE_ENV ?? 'development',
+        version: process.env.npm_package_version ?? '1.0.0',
         application: 'strong-agent-app',
         nodeVersion: process.version
       }

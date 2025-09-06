@@ -8,7 +8,18 @@ interface AllowConfig { allow: string[] }
 async function loadAllowlist(): Promise<AllowConfig> {
   try {
     const raw = await fs.readFile(path.resolve(process.cwd(), 'allowed_writes.json'), 'utf8');
-    return JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
+    
+    // 型検証
+    if (typeof parsed === 'object' && parsed !== null && 'allow' in parsed) {
+      const candidate = parsed as { allow: unknown };
+      if (Array.isArray(candidate.allow) && candidate.allow.every(item => typeof item === 'string')) {
+        return { allow: candidate.allow };
+      }
+    }
+    
+    // 不正な形式の場合はデフォルト値を返す
+    return { allow: [] };
   } catch {
     return { allow: [] };
   }

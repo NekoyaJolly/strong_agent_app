@@ -1,4 +1,5 @@
 // tests/workflow/agent-handoff.test.ts
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Agent, handoff } from '@openai/agents';
 import { z } from 'zod';
@@ -98,7 +99,7 @@ describe('Agent Handoff and Communication Tests', () => {
         handoffs: []
       };
 
-      const { Agent: MockAgent } = vi.mocked(require('@openai/agents'));
+      const MockAgent = vi.mocked(Agent);
       MockAgent.create = vi.fn().mockReturnValue(mockAgent);
 
       const agent = MockAgent.create({
@@ -119,7 +120,7 @@ describe('Agent Handoff and Communication Tests', () => {
     });
 
     it('should configure handoffs between agents', () => {
-      const { handoff: mockHandoff } = vi.mocked(require('@openai/agents'));
+      const mockHandoff = vi.mocked(handoff);
       mockHandoff.mockReturnValue('mocked-handoff' as any);
 
       const targetAgent = { name: 'TargetAgent' };
@@ -137,7 +138,7 @@ describe('Agent Handoff and Communication Tests', () => {
     });
 
     it('should handle multiple handoff configurations', () => {
-      const { handoff: mockHandoff } = vi.mocked(require('@openai/agents'));
+      const mockHandoff = vi.mocked(handoff);
       mockHandoff.mockReturnValue('mocked-handoff' as any);
 
       const agent1 = { name: 'Agent1' };

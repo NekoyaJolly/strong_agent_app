@@ -1,7 +1,14 @@
 // tests/workflow/workflow-integration-runner.test.ts
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { WorkflowOrchestrator } from '../../src/agent/workflow/WorkflowOrchestrator.js';
 import { ProjectContextManager, WorkflowStage, WorkflowStatus } from '../../src/agent/workflow/ProjectContext.js';
+import { 
+  ArchitecturePlan, 
+  ImplementationResult, 
+  TestReport, 
+  ReviewReport 
+} from '../../src/agent/schemas.js';
 
 // Mock all external dependencies
 vi.mock('@openai/agents', () => ({
@@ -213,13 +220,6 @@ describe('Workflow Integration Runner Tests', () => {
     });
 
     it('should validate agent output schemas', () => {
-      const { 
-        ArchitecturePlan, 
-        ImplementationResult, 
-        TestReport, 
-        ReviewReport 
-      } = require('../../src/agent/schemas.js');
-
       // Test schema validation
       const validArchPlan = {
         projectName: 'Test Project',

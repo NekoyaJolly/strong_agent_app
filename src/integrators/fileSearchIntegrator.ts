@@ -1,13 +1,15 @@
 /**
  * FileSearch Integrator
- * Vector Store IDを管理するFileSearchツールのラッパー
+ * Vector Store IDを管理するFileSearchツー    } catch (error) {
+      throw new Error(`Failed to index file ${filePath}: ${String(error)}`);
+    }ッパー
  */
 export class FileSearchIntegrator {
   private vectorStoreId: string | null = null;
   private isInitialized = false;
 
   constructor(vectorStoreId?: string) {
-    this.vectorStoreId = vectorStoreId || null;
+    this.vectorStoreId = vectorStoreId ?? null;
   }
 
   /**
@@ -20,9 +22,7 @@ export class FileSearchIntegrator {
 
     try {
       // Vector Store IDが指定されていない場合は新規作成
-      if (!this.vectorStoreId) {
-        this.vectorStoreId = await this.createVectorStore();
-      }
+      this.vectorStoreId ??= await this.createVectorStore();
 
       // Vector Storeの有効性をチェック
       await this.validateVectorStore();
@@ -30,7 +30,7 @@ export class FileSearchIntegrator {
       
       console.log(`FileSearch Integrator initialized with Vector Store ID: ${this.vectorStoreId}`);
     } catch (error) {
-      throw new Error(`Failed to initialize FileSearch Integrator: ${error}`);
+      throw new Error(`Failed to initialize FileSearch Integrator: ${String(error)}`);
     }
   }
 
@@ -46,14 +46,14 @@ export class FileSearchIntegrator {
       // 実際の実装では外部のVector Search APIを呼び出し
       return await this.performVectorSearch(query, options);
     } catch (error) {
-      throw new Error(`File search failed: ${error}`);
+      throw new Error(`File search failed: ${String(error)}`);
     }
   }
 
   /**
    * ファイルをVector Storeに追加
    */
-  async indexFile(filePath: string, content: string): Promise<void> {
+  async indexFile(filePath: string, _content: string): Promise<void> {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -63,7 +63,7 @@ export class FileSearchIntegrator {
       console.log(`Indexing file: ${filePath}`);
       // 実際の実装では外部APIを呼び出し
     } catch (error) {
-      throw new Error(`Failed to index file ${filePath}: ${error}`);
+      throw new Error(`Failed to index file ${filePath}: ${String(error)}`);
     }
   }
 
@@ -72,9 +72,9 @@ export class FileSearchIntegrator {
    */
   private async createVectorStore(): Promise<string> {
     // 実際の実装では外部API（OpenAI、Pinecone等）を使用
-    const mockVectorStoreId = `vs_${Date.now()}`;
+    const mockVectorStoreId = `vs_${Date.now().toString()}`;
     console.log(`Created new Vector Store: ${mockVectorStoreId}`);
-    return mockVectorStoreId;
+    return await Promise.resolve(mockVectorStoreId);
   }
 
   /**
@@ -86,6 +86,7 @@ export class FileSearchIntegrator {
     }
     // 実際の実装では外部APIに問い合わせ
     console.log(`Validating Vector Store: ${this.vectorStoreId}`);
+    await Promise.resolve();
   }
 
   /**
@@ -93,13 +94,13 @@ export class FileSearchIntegrator {
    */
   private async performVectorSearch(
     query: string, 
-    options?: SearchOptions
+    _options?: SearchOptions
   ): Promise<SearchResult[]> {
     // 実際の実装では外部Vector Search APIを呼び出し
     console.log(`Performing vector search for: "${query}"`);
     
     // モックの検索結果
-    return [
+    return await Promise.resolve([
       {
         filePath: '/example/file1.ts',
         content: 'Example content matching the query',
@@ -109,7 +110,7 @@ export class FileSearchIntegrator {
           size: 1024
         }
       }
-    ];
+    ]);
   }
 
   /**
@@ -140,6 +141,6 @@ export interface SearchResult {
   metadata?: {
     lastModified: Date;
     size: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }

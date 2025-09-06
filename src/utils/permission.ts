@@ -9,9 +9,9 @@ export class PermissionManager {
 
   constructor(config?: PermissionConfig) {
     if (config) {
-      this.allowedPaths = config.allowedPaths || [];
-      this.blockedPaths = config.blockedPaths || [];
-      this.requireApproval = config.requireApproval || [];
+      this.allowedPaths = config.allowedPaths ?? [];
+      this.blockedPaths = config.blockedPaths ?? [];
+      this.requireApproval = config.requireApproval ?? [];
     }
 
     this.initializeDefaultPermissions();

@@ -1,8 +1,6 @@
 // src/agents/devops.ts
 import { Agent } from '@openai/agents';
-
-// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
-const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
+import { RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { DevOpsPlan } from './schemas.js';
 
 export const devopsAgent = new Agent({

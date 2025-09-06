@@ -6,7 +6,7 @@ import { logger } from '../utils/logger.js';
 export async function cliRunner({ project, task }: { project: string; task: string }) {
   try {
     // 統合設定システムでプロジェクト固有の設定を読み込み
-    const config = await getConfig(project);
+    const config = getConfig(project);
     
     logger.info(`Starting agent for project=${project}`);
     logger.debug('Configuration loaded:', { 

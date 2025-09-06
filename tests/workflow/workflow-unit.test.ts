@@ -376,7 +376,7 @@ describe('Agent Workflow Unit Tests', () => {
 
     it('should handle workflow failures correctly', () => {
       // Add a few steps
-      const stepId1 = contextManager.addWorkflowStep({
+      const _stepId1 = contextManager.addWorkflowStep({
         stage: WorkflowStage.TRIAGE,
         status: WorkflowStatus.COMPLETED,
         agentName: 'Triage',

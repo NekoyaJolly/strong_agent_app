@@ -50,7 +50,7 @@ export class DeployTool {
 
       return {
         success: true,
-        deploymentId: `deploy-${Date.now()}`,
+        deploymentId: `deploy-${Date.now().toString()}`,
         timestamp: new Date(),
         environment: deploymentDetails.environment,
         version: deploymentDetails.version

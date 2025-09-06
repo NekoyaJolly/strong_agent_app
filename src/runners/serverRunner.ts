@@ -13,20 +13,20 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import pino from 'pino';
-import pinoHttp, { HttpLogger } from 'pino-http';
+import pinoHttp from 'pino-http';
 import crypto from 'node:crypto';
 import { z } from 'zod';
 import { run, setDefaultOpenAIKey } from '@openai/agents';
 import { triageAgent } from '../agent/triage.js';
 import { getConfig } from '../utils/config.js';
 
-export async function createServer() {
+export function createServer() {
   // 統合設定システムから設定を読み込み
-  const config = await getConfig();
+  const config = getConfig();
 
   // 🔒 Environment-based security configuration
   const isProduction = process.env.NODE_ENV === 'production';
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const _isDevelopment = process.env.NODE_ENV === 'development';
 
   // OpenAI API キーを設定
   if (config.env.openaiApiKey) {
@@ -37,9 +37,7 @@ export async function createServer() {
   
   // 🔒 CORS設定の厳格化 - セキュリティ強化
   // 動的オリジン検証による本番環境セキュリティ
-  const corsOriginsString = Array.isArray(config.server.cors.origins) 
-    ? config.server.cors.origins.join(',') 
-    : (config.server.cors.origins ?? '');
+  const corsOriginsString = config.server.cors.origins.join(',');
     
   const allowedOrigins = new Set(corsOriginsString
     .split(',')
@@ -66,7 +64,7 @@ export async function createServer() {
           logger.warn(`CORS violation: Unauthorized origin attempted access: ${normalizedOrigin}`);
           callback(new Error('CORS: Origin not allowed'), false);
         }
-      } catch (error) {
+      } catch {
         // 不正なURL形式のオリジンを拒否
         logger.warn(`CORS violation: Invalid origin format: ${origin}`);
         callback(new Error('CORS: Invalid origin format'), false);
@@ -96,7 +94,7 @@ export async function createServer() {
     },
     // カスタムキー生成 (IP + User-Agent でより厳密に)
     keyGenerator: (req) => {
-      return `${req.ip}_${req.get('User-Agent') || 'unknown'}`;
+      return `${req.ip ?? 'unknown'}_${req.get('User-Agent') ?? 'unknown'}`;
     },
     skipSuccessfulRequests: false,
     skipFailedRequests: false,
@@ -114,10 +112,10 @@ export async function createServer() {
       retryAfter: 60
     },
     keyGenerator: (req) => {
-      return `api_${req.ip}_${req.path}`;
+      return `api_${req.ip ?? 'unknown'}_${req.path ?? 'unknown'}`;
     },
     handler: (req, res) => {
-      logger.warn(`API rate limit exceeded for ${req.ip} on ${req.path}`);
+      logger.warn(`API rate limit exceeded for ${req.ip ?? 'unknown'} on ${req.path ?? 'unknown'}`);
       res.status(429).json({
         error: 'Too many API requests',
         message: 'Please wait before making more requests',
@@ -128,7 +126,7 @@ export async function createServer() {
   });
 
   // 🔥 認証エンドポイント用の最も厳格な制限
-  const authLimiter = rateLimit({
+  const _authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15分間
     max: isProduction ? 5 : 20, // 本番: 5回, 開発: 20回
     standardHeaders: 'draft-8',
@@ -140,10 +138,10 @@ export async function createServer() {
       retryAfter: 900 // 15分
     },
     keyGenerator: (req) => {
-      return `auth_${req.ip}`;
+      return `auth_${req.ip ?? 'unknown'}`;
     },
     handler: (req, res) => {
-      logger.warn(`Authentication rate limit exceeded for ${req.ip}`);
+      logger.warn(`Authentication rate limit exceeded for ${req.ip ?? 'unknown'}`);
       res.status(429).json({
         error: 'Too many authentication attempts',
         message: 'Please wait 15 minutes before trying again',
@@ -241,7 +239,7 @@ export async function createServer() {
   app.use(globalLimiter); // v8対応グローバルレート制限
 
   // セキュリティエラーハンドリング
-  const securityErrorHandler = (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const securityErrorHandler = (err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error(`Security error: ${err.message}`);
 
     // セキュリティエラーの詳細を本番環境では隠蔽
@@ -258,8 +256,11 @@ export async function createServer() {
   app.use(
     pinoHttp.default({
       logger,
-      genReqId: (req: any) =>
-        String(req.headers['x-request-id'] ?? crypto.randomUUID()),
+      genReqId: (req: unknown) => {
+        const headers = (req as { headers?: Record<string, unknown> }).headers;
+        const requestId = headers?.['x-request-id'];
+        return typeof requestId === 'string' ? requestId : crypto.randomUUID();
+      },
       // 🔒 ログリダクション - 機密情報の自動削除
       redact: {
         paths: [
@@ -302,15 +303,16 @@ export async function createServer() {
         maxTurns: maxTurns ?? config.env.maxTurns,
       });
       return res.status(200).json({ finalOutput: result.finalOutput });
-    } catch (err: any) {
-      const name = err?.name ?? 'Error';
+    } catch (err: unknown) {
+      const error = err as { name?: string; message?: string };
+      const name = error.name ?? 'Error';
       if (name === 'InputGuardrailTripwireTriggered') {
-        return res.status(422).json({ error: 'input_guardrail', message: String(err?.message ?? 'blocked') });
+        return res.status(422).json({ error: 'input_guardrail', message: error.message ?? 'blocked' });
       }
       if (name === 'OutputGuardrailTripwireTriggered') {
-        return res.status(422).json({ error: 'output_guardrail', message: String(err?.message ?? 'blocked') });
+        return res.status(422).json({ error: 'output_guardrail', message: error.message ?? 'blocked' });
       }
-      return res.status(500).json({ error: 'internal_error', message: String(err?.message ?? err) });
+      return res.status(500).json({ error: 'internal_error', message: error.message ?? String(err) });
     }
   });
 
@@ -320,10 +322,10 @@ export async function createServer() {
   return app;
 }
 
-export async function startServer(port?: number) {
-  const config = await getConfig();
-  const app = await createServer();
-  const serverPort = port || config.server.port;
+export function startServer(port?: number) {
+  const config = getConfig();
+  const app = createServer();
+  const serverPort = port ?? config.server.port;
 
   app.listen(serverPort, () => {
     const logger = pino({ level: config.env.logLevel });

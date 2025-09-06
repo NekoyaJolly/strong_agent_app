@@ -1,6 +1,7 @@
 // src/agent/workflow/WorkflowOrchestrator.ts
 import type { ProjectContext} from './ProjectContext.js';
 import { ProjectContextManager, WorkflowStage, WorkflowStatus } from './ProjectContext.js';
+import type { ArchitecturePlan, ImplementationResult, TestReport, ReviewReport, DevOpsPlan, DocsUpdate } from '../schemas.js';
 import { triageAgent } from '../triage.js';
 import { researcherAgent } from '../researcher.js';
 import { architectAgent } from '../architect.js';
@@ -11,7 +12,13 @@ import { devopsAgent } from '../devops.js';
 import { docsAgent } from '../docs.js';
 import { logger } from '../../utils/logger.js';
 import type { AgentRunResult } from '../../utils/agentRunner.js';
-import { SafeAgentRunner } from '../../utils/agentRunner.js';
+import { runAgent as _runAgent, runAgentWithRetry } from '../../utils/agentRunner.js';
+
+// OpenAI Agents SDKのAgent型（簡素化版）
+interface _WorkflowAgent {
+  name: string;
+  [key: string]: unknown; // その他のプロパティを許可
+}
 
 export interface WorkflowConfig {
   maxTurns?: number;
@@ -20,10 +27,18 @@ export interface WorkflowConfig {
   autoApprove?: boolean;
 }
 
+// 承認ハンドラーに渡されるデータの型
+export interface ApprovalData {
+  agentName: string;
+  stepId: string;
+  input: string;
+  result?: unknown;
+}
+
 export type ApprovalHandler = (
   stepId: string, 
   message: string, 
-  data: any, 
+  data: ApprovalData, 
   context: ProjectContext
 ) => Promise<boolean>;
 
@@ -54,33 +69,35 @@ export class WorkflowOrchestrator {
     approvalHandler?: ApprovalHandler
   ): Promise<WorkflowOrchestrator> {
     const context = ProjectContextManager.create(originalRequest);
-    return new WorkflowOrchestrator(context, config, approvalHandler);
+    return await Promise.resolve(new WorkflowOrchestrator(context, config, approvalHandler));
   }
 
-  private async executeAgent(agent: any, input: string, stepId: string): Promise<AgentRunResult> {
-    logger.info(`Executing ${agent.name} for step ${stepId}`);
+  private async executeAgent(agent: unknown, input: string, stepId: string): Promise<AgentRunResult> {
+    // OpenAI Agents SDKの複雑な型システムにより、ここでは unknown を使用
+    const agentWithName = agent as { name: string };
+    logger.info(`Executing ${agentWithName.name} for step ${stepId}`);
     
     try {
-      // Phase 1: 新しいSafeAgentRunnerを使用してエージェントを実行
-      const result = await SafeAgentRunner.runAgentWithRetry(agent, input, {
+      // Phase 1: 新しいrunAgentWithRetryを使用してエージェントを実行
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+      const result = await runAgentWithRetry(agent as any, input, 2, {
         maxTurns: this.config.maxTurns,
-        timeout: 120000, // 2分タイムアウト
-        retries: 2
+        timeout: 120000 // 2分タイムアウト
       });
 
       if (result.success) {
-        logger.info(`✅ ${agent.name} completed successfully for step ${stepId}`, {
+        logger.info(`✅ ${agentWithName.name} completed successfully for step ${stepId}`, {
           duration: result.metadata?.duration
         });
       } else {
-        logger.error(`❌ ${agent.name} failed for step ${stepId}: ${result.error}`, new Error(result.error || 'Unknown error'));
+        logger.error(`❌ ${agentWithName.name} failed for step ${stepId}: ${result.error ?? 'Unknown error'}`, new Error(result.error ?? 'Unknown error'));
       }
 
       return result;
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error(`🚨 Unexpected error in ${agent.name}:`, new Error(errorMessage));
+      logger.error(`🚨 Unexpected error in ${agentWithName.name}:`, new Error(errorMessage));
       
       return {
         success: false,
@@ -91,7 +108,7 @@ export class WorkflowOrchestrator {
     }
   }
 
-  private async requestApproval(stepId: string, message: string, data: any): Promise<boolean> {
+  private async requestApproval(stepId: string, message: string, data: ApprovalData): Promise<boolean> {
     if (this.config.autoApprove) {
       logger.info(`Auto-approving step: ${stepId}`);
       return true;
@@ -120,10 +137,16 @@ export class WorkflowOrchestrator {
           
           // 承認が必要な場合はチェック
           if (currentStep.requiresApproval && !currentStep.approved) {
+            const approvalData: ApprovalData = {
+              agentName: currentStep.agentName,
+              stepId: currentStep.id,
+              input: `${currentStep.stage} stage processing`,
+              result: currentStep.result
+            };
             const approved = await this.requestApproval(
               currentStep.id,
               `Please approve ${currentStep.stage} stage`,
-              currentStep.result
+              approvalData
             );
             
             if (!approved) {
@@ -197,7 +220,7 @@ export class WorkflowOrchestrator {
         stage: step.stage,
         status: WorkflowStatus.PENDING,
         agentName: step.agentName,
-        requiresApproval: step.requiresApproval || false
+        requiresApproval: step.requiresApproval ?? false
       });
     });
 
@@ -205,6 +228,7 @@ export class WorkflowOrchestrator {
       currentStage: WorkflowStage.TRIAGE,
       status: WorkflowStatus.IN_PROGRESS
     });
+    await Promise.resolve();
   }
 
   private async executeCurrentStep(): Promise<void> {
@@ -236,42 +260,42 @@ export class WorkflowOrchestrator {
       case WorkflowStage.ARCHITECTURE:
         agentResult = await this.executeAgent(architectAgent, input, currentStep.id);
         if (agentResult.success) {
-          this.contextManager.updateContext({ architecturePlan: agentResult.data });
+          this.contextManager.updateContext({ architecturePlan: agentResult.data as ArchitecturePlan });
         }
         break;
         
       case WorkflowStage.IMPLEMENTATION:
         agentResult = await this.executeAgent(implementerAgent, input, currentStep.id);
         if (agentResult.success) {
-          this.contextManager.updateContext({ implementationResult: agentResult.data });
+          this.contextManager.updateContext({ implementationResult: agentResult.data as ImplementationResult });
         }
         break;
         
       case WorkflowStage.TESTING:
         agentResult = await this.executeAgent(testAgent, input, currentStep.id);
         if (agentResult.success) {
-          this.contextManager.updateContext({ testReport: agentResult.data });
+          this.contextManager.updateContext({ testReport: agentResult.data as TestReport });
         }
         break;
         
       case WorkflowStage.REVIEW:
         agentResult = await this.executeAgent(reviewerAgent, input, currentStep.id);
         if (agentResult.success) {
-          this.contextManager.updateContext({ reviewReport: agentResult.data });
+          this.contextManager.updateContext({ reviewReport: agentResult.data as ReviewReport });
         }
         break;
         
       case WorkflowStage.DEVOPS:
         agentResult = await this.executeAgent(devopsAgent, input, currentStep.id);
         if (agentResult.success) {
-          this.contextManager.updateContext({ devopsPlan: agentResult.data });
+          this.contextManager.updateContext({ devopsPlan: agentResult.data as DevOpsPlan });
         }
         break;
         
       case WorkflowStage.DOCUMENTATION:
         agentResult = await this.executeAgent(docsAgent, input, currentStep.id);
         if (agentResult.success) {
-          this.contextManager.updateContext({ docsUpdate: agentResult.data });
+          this.contextManager.updateContext({ docsUpdate: agentResult.data as DocsUpdate });
         }
         break;
     }
@@ -293,7 +317,7 @@ export class WorkflowOrchestrator {
       
       // 回復可能なエラーの場合は警告、そうでなければ致命的エラーとして扱う
       if (!agentResult.recoverable) {
-        throw new Error(`Critical error in ${currentStep.stage}: ${agentResult.error}`);
+        throw new Error(`Critical error in ${currentStep.stage}: ${agentResult.error ?? 'Unknown error'}`);
       }
     }
   }
@@ -388,7 +412,7 @@ Triageの結果: ${JSON.stringify(context.triageResult, null, 2)}
       return true;
     }
     
-    return false;
+    return await Promise.resolve(false);
   }
 
   private async handleIterationLoop(): Promise<void> {
@@ -398,7 +422,7 @@ Triageの結果: ${JSON.stringify(context.triageResult, null, 2)}
     }
 
     this.contextManager.incrementIteration();
-    logger.info(`Starting iteration ${this.contextManager.getContext().iterationCount}`);
+    logger.info(`Starting iteration ${this.contextManager.getContext().iterationCount.toString()}`);
     
     // 実装段階に戻る（問題修正のため）
     const implementationStepIndex = this.contextManager.getContext().workflow
@@ -409,6 +433,7 @@ Triageの結果: ${JSON.stringify(context.triageResult, null, 2)}
         currentStepIndex: implementationStepIndex 
       });
     }
+    await Promise.resolve();
   }
 
   private hasMoreSteps(): boolean {
@@ -416,7 +441,7 @@ Triageの結果: ${JSON.stringify(context.triageResult, null, 2)}
     return context.currentStepIndex < context.workflow.length;
   }
 
-  private isCriticalError(error: any): boolean {
+  private isCriticalError(error: unknown): boolean {
     // エラーの種類に基づいて継続可能かどうかを判定
     const errorMessage = error instanceof Error ? error.message : String(error);
     
@@ -442,6 +467,7 @@ Triageの結果: ${JSON.stringify(context.triageResult, null, 2)}
     } else {
       logger.warn('Workflow completed with some failed steps');
     }
+    await Promise.resolve();
   }
 
   getContext(): ProjectContext {

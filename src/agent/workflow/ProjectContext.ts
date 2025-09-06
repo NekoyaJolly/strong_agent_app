@@ -98,7 +98,7 @@ export class ProjectContextManager {
   static create(originalRequest: string): ProjectContext {
     const now = new Date();
     return {
-      id: `project_${Date.now()}`,
+      id: `project_${Date.now().toString()}`,
       originalRequest,
       currentStage: WorkflowStage.INITIAL,
       status: WorkflowStatus.PENDING,
@@ -124,7 +124,7 @@ export class ProjectContextManager {
   }
 
   addWorkflowStep(step: Omit<WorkflowStep, 'id'>): string {
-    const stepId = `step_${this.context.workflow.length}_${Date.now()}`;
+    const stepId = `step_${this.context.workflow.length.toString()}_${Date.now().toString()}`;
     this.context.workflow.push({
       ...step,
       id: stepId
@@ -133,7 +133,7 @@ export class ProjectContextManager {
     return stepId;
   }
 
-  updateStepStatus(stepId: string, status: WorkflowStatus, result?: any, error?: string) {
+  updateStepStatus(stepId: string, status: WorkflowStatus, result?: unknown, error?: string) {
     const step = this.context.workflow.find(s => s.id === stepId);
     if (step) {
       step.status = status;
@@ -173,7 +173,7 @@ export class ProjectContextManager {
     return this.context.iterationCount < this.context.maxIterations;
   }
 
-  addApprovalRequest(stepId: string, message: string, data: any) {
+  addApprovalRequest(stepId: string, message: string, data: unknown) {
     this.context.pendingApprovals.push({
       stepId,
       message,

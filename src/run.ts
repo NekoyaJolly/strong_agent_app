@@ -6,7 +6,7 @@ import { getConfig } from './utils/config.js';
 async function main() {
   try {
     // 統合設定システムから設定を読み込み
-    const config = await getConfig();
+    const config = getConfig();
     
     // OpenAI API キーを設定
     if (config.env.openaiApiKey) {
@@ -22,7 +22,7 @@ async function main() {
     });
 
     console.log('--- Final Output (text) ---------------------------');
-    console.log(result.finalOutput || 'No output');
+    console.log(result.finalOutput ?? 'No output');
     console.log('\n--- Raw finalOutput (JSON, if any) ----------------');
     console.log(JSON.stringify(result.finalOutput, null, 2));
   } catch (error) {
@@ -31,4 +31,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error: unknown) => {
+  console.error('Unhandled error in main:', error);
+  process.exit(1);
+});
