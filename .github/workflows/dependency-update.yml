@@ -1,0 +1,91 @@
+name: Dependency Update
+
+on:
+  schedule:
+    # 毎週月曜日の午前9時（JST）に実行
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # =====================================
+  # 依存関係の更新チェック
+  # =====================================
+  dependency-update:
+    name: 📦 Dependency Update Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: 📊 Check for outdated packages
+        run: |
+          echo "## 📦 Dependency Status Report" >> $GITHUB_STEP_SUMMARY
+          echo "### Outdated Packages:" >> $GITHUB_STEP_SUMMARY
+          npm outdated --json > outdated.json || true
+          if [ -s outdated.json ]; then
+            echo "Found outdated packages:" >> $GITHUB_STEP_SUMMARY
+            cat outdated.json >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ All packages are up to date!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🔒 Security audit
+        run: |
+          echo "### Security Audit:" >> $GITHUB_STEP_SUMMARY
+          npm audit --json > audit.json || true
+          if [ -s audit.json ]; then
+            vulnerabilities=$(cat audit.json | jq '.vulnerabilities // empty | length')
+            if [ "$vulnerabilities" -gt 0 ]; then
+              echo "⚠️ Found $vulnerabilities vulnerabilities" >> $GITHUB_STEP_SUMMARY
+              echo '```json' >> $GITHUB_STEP_SUMMARY
+              cat audit.json | jq '.vulnerabilities' >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ No security vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "✅ No security vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📋 Create issue for updates
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `📦 Dependency Update Required - ${new Date().toISOString().split('T')[0]}`;
+            const body = `
+            ## 📦 Dependencies that need updating:
+            
+            This is an automated issue created by the dependency update workflow.
+            
+            ### Actions needed:
+            1. Review the outdated packages listed in the workflow summary
+            2. Update dependencies carefully, testing for breaking changes
+            3. Run the full test suite after updates
+            4. Close this issue once updates are complete
+            
+            ### Workflow run:
+            ${context.payload.workflow_run?.html_url || context.payload.repository.html_url + '/actions'}
+            `;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['dependencies', 'maintenance']
+            });

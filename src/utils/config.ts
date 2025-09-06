@@ -140,7 +140,6 @@ class ConfigManager {
   private static instance: ConfigManager;
   private config: Config | null = null;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {
     // Singleton pattern - empty constructor is intentional
   }

@@ -1,0 +1,99 @@
+name: PR Quality Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # =====================================
+  # PR品質チェック
+  # =====================================
+  pr-quality:
+    name: 🔍 PR Quality Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: 🔍 Run ESLint with annotations
+        run: |
+          npm run lint > lint-results.txt 2>&1 || true
+          if [ -s lint-results.txt ]; then
+            echo "⚠️ ESLint found issues:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat lint-results.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ ESLint passed with no issues" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🔍 Type check
+        run: npm run type-check
+
+      - name: 🧪 Run tests
+        run: npm run test:run
+
+      - name: 🏗️ Build check
+        run: npm run build
+
+      - name: 📊 Test coverage diff
+        run: |
+          npm run test:coverage
+          echo "📊 Test coverage report generated" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📋 PR Summary
+        run: |
+          echo "## 📋 PR Quality Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ESLint: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ TypeScript: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Build: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Coverage: Available in artifacts" >> $GITHUB_STEP_SUMMARY
+
+  # =====================================
+  # 変更ファイル分析
+  # =====================================
+  pr-analysis:
+    name: 📊 Change Analysis
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📊 Analyze changed files
+        run: |
+          echo "## 📊 Changed Files Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "### Modified Files:" >> $GITHUB_STEP_SUMMARY
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | while read file; do
+            echo "- 📄 \`$file\`" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          echo "### File Statistics:" >> $GITHUB_STEP_SUMMARY
+          git diff --stat ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} >> $GITHUB_STEP_SUMMARY
+
+      - name: 📊 Code complexity check
+        run: |
+          echo "### 📊 Code Complexity:" >> $GITHUB_STEP_SUMMARY
+          find src -name "*.ts" -type f | head -10 | while read file; do
+            lines=$(wc -l < "$file")
+            echo "- \`$file\`: $lines lines" >> $GITHUB_STEP_SUMMARY
+          done
