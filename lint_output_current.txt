@@ -1,0 +1,222 @@
+
+/Users/nekoya/strong_agent_app/src/agent/workflow/ProjectContext.ts
+  101:22  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  127:28  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  127:60  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+/Users/nekoya/strong_agent_app/src/agent/workflow/WorkflowOrchestrator.ts
+   14:10   error    'runAgent' is defined but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+   17:11   error    'WorkflowAgent' is defined but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+   30:13   error    Use an `interface` instead of a `type`                                                                      @typescript-eslint/consistent-type-definitions
+   65:3    error    Static async method 'createWorkflow' has no 'await' expression                                              @typescript-eslint/require-await
+   92:76   error    Invalid type "string | undefined" of template literal expression                                            @typescript-eslint/restrict-template-expressions
+   92:115  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator   @typescript-eslint/prefer-nullish-coalescing
+  204:3    error    Async method 'initializeWorkflow' has no 'await' expression                                                 @typescript-eslint/require-await
+  222:49   error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator   @typescript-eslint/prefer-nullish-coalescing
+  247:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  255:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  263:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  271:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  279:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  287:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  295:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  303:11   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  326:68   error    Invalid type "string | undefined" of template literal expression                                            @typescript-eslint/restrict-template-expressions
+  408:3    error    Async method 'shouldIterateBasedOnResults' has no 'await' expression                                        @typescript-eslint/require-await
+  424:3    error    Async method 'handleIterationLoop' has no 'await' expression                                                @typescript-eslint/require-await
+  431:39   error    Invalid type "number" of template literal expression                                                        @typescript-eslint/restrict-template-expressions
+  463:3    error    Async method 'finalizeWorkflow' has no 'await' expression                                                   @typescript-eslint/require-await
+
+/Users/nekoya/strong_agent_app/src/index.ts
+  15:1   error  Async function 'initializeApplication' has no 'await' expression                                    @typescript-eslint/require-await
+  18:5   error  `loadOpenAIKeyFromSecrets` is deprecated. 内部的に config.ts で処理されます                                    @typescript-eslint/no-deprecated
+  43:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/Users/nekoya/strong_agent_app/src/integrators/codeInterpreterWrap.ts
+   41:44  error  Invalid type "string | undefined" of template literal expression  @typescript-eslint/restrict-template-expressions
+  115:60  error  Invalid type "number" of template literal expression              @typescript-eslint/restrict-template-expressions
+  147:9   error  Expected the Promise rejection reason to be an Error              @typescript-eslint/prefer-promise-reject-errors
+
+/Users/nekoya/strong_agent_app/src/integrators/fileSearchIntegrator.ts
+  10:40  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator       @typescript-eslint/prefer-nullish-coalescing
+  23:7   error  Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read  @typescript-eslint/prefer-nullish-coalescing
+  33:70  error  Invalid type "unknown" of template literal expression                                                           @typescript-eslint/restrict-template-expressions
+  49:46  error  Invalid type "unknown" of template literal expression                                                           @typescript-eslint/restrict-template-expressions
+  66:60  error  Invalid type "unknown" of template literal expression                                                           @typescript-eslint/restrict-template-expressions
+  73:3   error  Async method 'createVectorStore' has no 'await' expression                                                      @typescript-eslint/require-await
+  75:37  error  Invalid type "number" of template literal expression                                                            @typescript-eslint/restrict-template-expressions
+  83:3   error  Async method 'validateVectorStore' has no 'await' expression                                                    @typescript-eslint/require-await
+  94:3   error  Async method 'performVectorSearch' has no 'await' expression                                                    @typescript-eslint/require-await
+
+/Users/nekoya/strong_agent_app/src/integrators/webSearchIntegrator.ts
+  11:26  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  11:60  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  37:45  error  Invalid type "unknown" of template literal expression                                                      @typescript-eslint/restrict-template-expressions
+  63:46  error  Invalid type "unknown" of template literal expression                                                      @typescript-eslint/restrict-template-expressions
+  89:47  error  Invalid type "unknown" of template literal expression                                                      @typescript-eslint/restrict-template-expressions
+
+/Users/nekoya/strong_agent_app/src/run.ts
+  25:36  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  34:1   error  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+
+/Users/nekoya/strong_agent_app/src/runners/serverRunner.ts
+   42:8   error  Unnecessary conditional, value is `never`                                                                                 @typescript-eslint/no-unnecessary-condition
+   99:17  error  Invalid type "string | undefined" of template literal expression                                                          @typescript-eslint/restrict-template-expressions
+   99:49  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                 @typescript-eslint/prefer-nullish-coalescing
+  117:21  error  Invalid type "string | undefined" of template literal expression                                                          @typescript-eslint/restrict-template-expressions
+  120:50  error  Invalid type "string | undefined" of template literal expression                                                          @typescript-eslint/restrict-template-expressions
+  143:22  error  Invalid type "string | undefined" of template literal expression                                                          @typescript-eslint/restrict-template-expressions
+  146:61  error  Invalid type "string | undefined" of template literal expression                                                          @typescript-eslint/restrict-template-expressions
+  262:71  error  Unnecessary optional chain on a non-nullish value                                                                         @typescript-eslint/no-unnecessary-condition
+  264:23  error  'requestId ?? crypto.randomUUID()' will use Object's default stringification format ('[object Object]') when stringified  @typescript-eslint/no-base-to-string
+  310:25  error  Unnecessary optional chain on a non-nullish value                                                                         @typescript-eslint/no-unnecessary-condition
+  312:74  error  Passing a string to String() does not change the type or value of the string                                              @typescript-eslint/no-unnecessary-type-conversion
+  312:86  error  Unnecessary optional chain on a non-nullish value                                                                         @typescript-eslint/no-unnecessary-condition
+  315:75  error  Passing a string to String() does not change the type or value of the string                                              @typescript-eslint/no-unnecessary-type-conversion
+  315:87  error  Unnecessary optional chain on a non-nullish value                                                                         @typescript-eslint/no-unnecessary-condition
+  317:83  error  Unnecessary optional chain on a non-nullish value                                                                         @typescript-eslint/no-unnecessary-condition
+  330:27  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                 @typescript-eslint/prefer-nullish-coalescing
+
+/Users/nekoya/strong_agent_app/src/runners/workflowRunner.ts
+   35:40  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   36:55  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   37:51  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   38:47  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   99:3   error  Async method 'getProgress' has no 'await' expression                                                       @typescript-eslint/require-await
+  100:44  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  112:48  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  113:44  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  114:7   error  Async method 'onStageComplete' has no 'await' expression                                                   @typescript-eslint/require-await
+  119:7   error  Async method 'onWorkflowComplete' has no 'await' expression                                                @typescript-eslint/require-await
+
+/Users/nekoya/strong_agent_app/src/utils/agentRunner.ts
+   37:16   error  This is the default value for this type parameter, so it can be omitted                                    @typescript-eslint/no-unnecessary-type-arguments
+   54:34   error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   82:56   error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  133:16   error  This is the default value for this type parameter, so it can be omitted                                    @typescript-eslint/no-unnecessary-type-arguments
+  141:48   error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  141:63   error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  151:63   error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  156:30   error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  166:54   error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  174:28   error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  187:44   error  This is the default value for this type parameter, so it can be omitted                                    @typescript-eslint/no-unnecessary-type-arguments
+  187:105  error  'unknown' overrides all other types in this union type                                                     @typescript-eslint/no-redundant-type-constituents
+
+/Users/nekoya/strong_agent_app/src/utils/config.ts
+  143:25  error    Unexpected empty constructor                                                                                @typescript-eslint/no-empty-function
+  146:9   error    Unnecessary conditional, value is always falsy                                                              @typescript-eslint/no-unnecessary-condition
+  214:3   error    Async method 'loadJsonConfig' has no 'await' expression                                                     @typescript-eslint/require-await
+  224:7   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unsafe-assignment')
+  231:53  error    Invalid type "unknown" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  280:9   error    Unnecessary conditional, value is always falsy                                                              @typescript-eslint/no-unnecessary-condition
+  281:9   error    Unnecessary conditional, value is always falsy                                                              @typescript-eslint/no-unnecessary-condition
+  307:56  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator   @typescript-eslint/prefer-nullish-coalescing
+  315:69  error    Invalid type "unknown" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+
+/Users/nekoya/strong_agent_app/src/utils/logger.ts
+   95:26  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  127:21  error  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  127:62  error  `substr` is deprecated. A legacy feature for browser compatibility                                         @typescript-eslint/no-deprecated
+  172:36  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/Users/nekoya/strong_agent_app/src/utils/permission.ts
+  12:47  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  13:47  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  14:53  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/Users/nekoya/strong_agent_app/src/utils/sharedRunner.ts
+  28:9  error  Unnecessary conditional, value is always falsy  @typescript-eslint/no-unnecessary-condition
+
+/Users/nekoya/strong_agent_app/src/utils/testRunner.ts
+   87:3   error  Async method 'runESLint' has no 'await' expression                                        @typescript-eslint/require-await
+   95:3   error  Async method 'runTypeCheck' has no 'await' expression                                     @typescript-eslint/require-await
+  103:3   error  Async method 'executeGeneratedTests' has no 'await' expression                            @typescript-eslint/require-await
+  125:19  error  Invalid operand for a '+' operation. Operands must each be a number or string. Got `any`  @typescript-eslint/restrict-plus-operands
+  125:19  error  Unsafe call of a(n) `any` typed value                                                     @typescript-eslint/no-unsafe-call
+  125:24  error  Unsafe member access .toString on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+  129:24  error  Invalid operand for a '+' operation. Operands must each be a number or string. Got `any`  @typescript-eslint/restrict-plus-operands
+  129:24  error  Unsafe call of a(n) `any` typed value                                                     @typescript-eslint/no-unsafe-call
+  129:29  error  Unsafe member access .toString on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+  152:22  error  Unnecessary optional chain on a non-nullish value                                         @typescript-eslint/no-unnecessary-condition
+
+/Users/nekoya/strong_agent_app/tests/config.test.ts
+  176:25  error  Avoid referencing unbound methods which may cause unintentional scoping of `this`.
+If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead  @typescript-eslint/unbound-method
+  263:25  error  Avoid referencing unbound methods which may cause unintentional scoping of `this`.
+If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead  @typescript-eslint/unbound-method
+
+/Users/nekoya/strong_agent_app/tests/utils/agentRunner.test.ts
+   24:20  error  Async arrow function has no 'await' expression                                          @typescript-eslint/require-await
+   48:48  error  Unsafe argument of type `any` assigned to a parameter of type `Runner`                  @typescript-eslint/no-unsafe-argument
+   57:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   57:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+   66:35  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+   70:23  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+   78:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   78:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+   80:35  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+   88:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   88:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   88:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+   90:8   error  Unsafe member access .mockResolvedValueOnce on an `any` value                           @typescript-eslint/no-unsafe-member-access
+   96:7   error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  103:23  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  107:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  107:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  110:7   error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  118:23  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  123:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  123:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  125:35  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  141:50  error  Unsafe argument of type `any` assigned to a parameter of type `Runner`                  @typescript-eslint/no-unsafe-argument
+  145:37  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  156:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  156:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  157:40  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  161:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  161:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  162:42  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  168:5   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  168:16  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+  174:35  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, "text">`  @typescript-eslint/no-unsafe-argument
+  178:23  error  Unsafe member access .run on an `any` value                                             @typescript-eslint/no-unsafe-member-access
+
+/Users/nekoya/strong_agent_app/tests/workflow/agent-handoff.test.ts
+  123:35  error  Unsafe argument of type `any` assigned to a parameter of type `Handoff<unknown, AgentOutputType>`  @typescript-eslint/no-unsafe-argument
+  128:41  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, AgentOutputType>`    @typescript-eslint/no-unsafe-argument
+  141:35  error  Unsafe argument of type `any` assigned to a parameter of type `Handoff<unknown, AgentOutputType>`  @typescript-eslint/no-unsafe-argument
+  150:21  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, AgentOutputType>`    @typescript-eslint/no-unsafe-argument
+  151:21  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, AgentOutputType>`    @typescript-eslint/no-unsafe-argument
+  152:21  error  Unsafe argument of type `any` assigned to a parameter of type `Agent<unknown, AgentOutputType>`    @typescript-eslint/no-unsafe-argument
+  209:26  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+  226:21  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+  226:56  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+  277:21  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+  277:72  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+  349:26  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+  390:24  error  Invalid type "number" of template literal expression                                               @typescript-eslint/restrict-template-expressions
+
+/Users/nekoya/strong_agent_app/tests/workflow/workflow-integration-runner.test.ts
+   96:59  error  Async arrow function has no 'await' expression             @typescript-eslint/require-await
+   98:7   error  Unsafe call of a(n) `any` typed value                      @typescript-eslint/no-unsafe-call
+   98:15  error  Unsafe member access .mockResolvedValue on an `any` value  @typescript-eslint/no-unsafe-member-access
+  209:7   error  Unsafe call of a(n) `any` typed value                      @typescript-eslint/no-unsafe-call
+  209:15  error  Unsafe member access .mockResolvedValue on an `any` value  @typescript-eslint/no-unsafe-member-access
+  217:33  error  Unsafe member access .summary on an `any` value            @typescript-eslint/no-unsafe-member-access
+  353:13  error  Unsafe assignment of an `any` value                        @typescript-eslint/no-unsafe-assignment
+  354:41  error  Unsafe member access .failed on an `any` value             @typescript-eslint/no-unsafe-member-access
+  387:43  error  Unsafe member access .memo on an `any` value               @typescript-eslint/no-unsafe-member-access
+  395:72  error  Async arrow function has no 'await' expression             @typescript-eslint/require-await
+  431:30  error  Invalid type "number" of template literal expression       @typescript-eslint/restrict-template-expressions
+
+/Users/nekoya/strong_agent_app/tests/workflow/workflow-unit.test.ts
+  486:30  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  532:25  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  533:28  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  553:20  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  560:71  error  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+✖ 176 problems (167 errors, 9 warnings)
+  4 errors and 9 warnings potentially fixable with the `--fix` option.
+

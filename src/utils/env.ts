@@ -27,7 +27,7 @@ export function loadEnvForProject(projectName: string) {
 export function loadOpenAIKeyFromSecrets() {
   console.warn('loadOpenAIKeyFromSecrets is deprecated. This is now handled automatically in the config system.');
   
-  const p = process.env.OPENAI_API_KEY_FILE || '/run/secrets/openai_api_key';
+  const p = process.env.OPENAI_API_KEY_FILE ?? '/run/secrets/openai_api_key';
   if (fs.existsSync(p)) {
     const key = fs.readFileSync(p, 'utf8').trim();
     if (key && !process.env.OPENAI_API_KEY) process.env.OPENAI_API_KEY = key;
@@ -37,6 +37,6 @@ export function loadOpenAIKeyFromSecrets() {
 /**
  * 統合設定システムを使用した便利関数
  */
-export async function initializeConfig(projectName?: string) {
+export function initializeConfig(projectName?: string) {
   return configManager.loadConfig(projectName);
 }

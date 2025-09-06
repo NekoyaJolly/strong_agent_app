@@ -11,7 +11,7 @@ export class GitTool {
   private workingDirectory: string;
 
   constructor(workingDirectory?: string) {
-    this.workingDirectory = workingDirectory || process.cwd();
+    this.workingDirectory = workingDirectory ?? process.cwd();
   }
 
   async status(): Promise<string> {
@@ -21,7 +21,7 @@ export class GitTool {
       });
       return stdout;
     } catch (error) {
-      throw new Error(`Git status failed: ${error}`);
+      throw new Error(`Git status failed: ${String(error)}`);
     }
   }
 
@@ -32,7 +32,7 @@ export class GitTool {
         cwd: this.workingDirectory
       });
     } catch (error) {
-      throw new Error(`Git add failed: ${error}`);
+      throw new Error(`Git add failed: ${String(error)}`);
     }
   }
 
@@ -42,17 +42,17 @@ export class GitTool {
         cwd: this.workingDirectory
       });
     } catch (error) {
-      throw new Error(`Git commit failed: ${error}`);
+      throw new Error(`Git commit failed: ${String(error)}`);
     }
   }
 
-  async push(branch: string = 'main'): Promise<void> {
+  async push(branch = 'main'): Promise<void> {
     try {
       await execAsync(`git push origin ${branch}`, {
         cwd: this.workingDirectory
       });
     } catch (error) {
-      throw new Error(`Git push failed: ${error}`);
+      throw new Error(`Git push failed: ${String(error)}`);
     }
   }
 
@@ -62,7 +62,7 @@ export class GitTool {
         cwd: this.workingDirectory
       });
     } catch (error) {
-      throw new Error(`Git branch creation failed: ${error}`);
+      throw new Error(`Git branch creation failed: ${String(error)}`);
     }
   }
 }

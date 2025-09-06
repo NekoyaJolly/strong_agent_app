@@ -18,6 +18,33 @@ export interface TestDetail {
   error?: string;
 }
 
+// ESLint結果の型定義
+export interface ESLintMessage {
+  ruleId: string | null;
+  severity: 1 | 2;
+  message: string;
+  line: number;
+  column: number;
+}
+
+export interface ESLintFile {
+  filePath: string;
+  messages: ESLintMessage[];
+  errorCount: number;
+  warningCount: number;
+}
+
+export interface ESLintResult {
+  issues: ESLintFile[];
+  score: number;
+}
+
+// TypeScript型チェック結果の型定義
+export interface TypeCheckResult {
+  success: boolean;
+  errors: string[];
+}
+
 /**
  * 実際のテスト実行を担当するクラス
  * TesterエージェントがAIで生成したテストコードを実際に実行し、結果を取得する
@@ -57,17 +84,17 @@ export class TestRunner {
   /**
    * ESLintによる静的解析を実行（簡易版）
    */
-  async runESLint(_filePath?: string): Promise<{ issues: any[], score: number }> {
+  async runESLint(_filePath?: string): Promise<ESLintResult> {
     // 簡易実装 - 実際のESLintは外部から実行
-    return { issues: [], score: 100 };
+    return await Promise.resolve({ issues: [], score: 100 });
   }
 
   /**
    * TypeScript型チェックを実行（簡易版）
    */
-  async runTypeCheck(): Promise<{ success: boolean, errors: string[] }> {
+  async runTypeCheck(): Promise<TypeCheckResult> {
     // 簡易実装 - 実際の型チェックは外部から実行
-    return { success: true, errors: [] };
+    return await Promise.resolve({ success: true, errors: [] });
   }
 
   /**
@@ -75,13 +102,13 @@ export class TestRunner {
    */
   async executeGeneratedTests(_testCode: string, _targetCode?: string): Promise<TestExecutionResult> {
     // 現在は基本的な結果を返す
-    return {
+    return await Promise.resolve({
       passed: 1,
       failed: 0,
       total: 1,
       details: [{ name: 'generated test', status: 'passed' }],
       errors: []
-    };
+    });
   }
 
   private async runVitest(cwd: string): Promise<TestExecutionResult> {
@@ -94,11 +121,11 @@ export class TestRunner {
       let output = '';
       let errorOutput = '';
 
-      vitestProcess.stdout.on('data', (data) => {
+      vitestProcess.stdout.on('data', (data: Buffer) => {
         output += data.toString();
       });
 
-      vitestProcess.stderr.on('data', (data) => {
+      vitestProcess.stderr.on('data', (data: Buffer) => {
         errorOutput += data.toString();
       });
 
@@ -107,7 +134,7 @@ export class TestRunner {
           // Vitestからの結果を解析
           const result = this.parseVitestOutput(output, errorOutput);
           resolve(result);
-        } catch (error) {
+        } catch {
           reject(new Error(`Vitest実行エラー: ${errorOutput}`));
         }
       });
@@ -122,7 +149,7 @@ export class TestRunner {
       let failed = 0;
       
       // 基本的な結果の推定（実装簡略化）
-      if (errorOutput && errorOutput.includes('FAIL')) {
+      if (errorOutput.includes('FAIL')) {
         failed = 1;
       } else {
         passed = 1;

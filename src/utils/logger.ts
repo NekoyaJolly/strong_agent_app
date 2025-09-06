@@ -6,7 +6,7 @@ export class Logger {
   private traceId: string;
   private context: string;
 
-  constructor(context: string = 'DefaultContext') {
+  constructor(context = 'DefaultContext') {
     this.context = context;
     this.traceId = this.generateTraceId();
   }
@@ -14,21 +14,21 @@ export class Logger {
   /**
    * 情報レベルのログ
    */
-  info(message: string, metadata?: Record<string, any>): void {
+  info(message: string, metadata?: Record<string, unknown>): void {
     this.log('INFO', message, metadata);
   }
 
   /**
    * 警告レベルのログ
    */
-  warn(message: string, metadata?: Record<string, any>): void {
+  warn(message: string, metadata?: Record<string, unknown>): void {
     this.log('WARN', message, metadata);
   }
 
   /**
    * エラーレベルのログ
    */
-  error(message: string, error?: Error, metadata?: Record<string, any>): void {
+  error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
     const errorMetadata = error ? {
       errorName: error.name,
       errorMessage: error.message,
@@ -42,7 +42,7 @@ export class Logger {
   /**
    * デバッグレベルのログ
    */
-  debug(message: string, metadata?: Record<string, any>): void {
+  debug(message: string, metadata?: Record<string, unknown>): void {
     if (this.isDebugEnabled()) {
       this.log('DEBUG', message, metadata);
     }
@@ -51,7 +51,7 @@ export class Logger {
   /**
    * 操作開始のログ
    */
-  operationStart(operation: string, metadata?: Record<string, any>): void {
+  operationStart(operation: string, metadata?: Record<string, unknown>): void {
     this.info(`Operation started: ${operation}`, {
       operation,
       phase: 'start',
@@ -62,7 +62,7 @@ export class Logger {
   /**
    * 操作完了のログ
    */
-  operationEnd(operation: string, duration: number, metadata?: Record<string, any>): void {
+  operationEnd(operation: string, duration: number, metadata?: Record<string, unknown>): void {
     this.info(`Operation completed: ${operation}`, {
       operation,
       phase: 'end',
@@ -74,7 +74,7 @@ export class Logger {
   /**
    * 操作失敗のログ
    */
-  operationFailed(operation: string, error: Error, metadata?: Record<string, any>): void {
+  operationFailed(operation: string, error: Error, metadata?: Record<string, unknown>): void {
     this.error(`Operation failed: ${operation}`, error, {
       operation,
       phase: 'failed',
@@ -85,14 +85,14 @@ export class Logger {
   /**
    * 構造化ログの出力
    */
-  private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+  private log(level: LogLevel, message: string, metadata?: Record<string, unknown>): void {
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       traceId: this.traceId,
       context: this.context,
       message,
-      metadata: metadata || {}
+      metadata: metadata ?? {}
     };
 
     // 環境に応じてログ出力先を変更
@@ -124,7 +124,7 @@ export class Logger {
    * Trace IDを生成
    */
   private generateTraceId(): string {
-    return `trace-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `trace-${Date.now().toString()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
@@ -169,7 +169,7 @@ export class Logger {
    */
   child(context: string, traceId?: string): Logger {
     const childLogger = new Logger(context);
-    childLogger.setTraceId(traceId || this.traceId);
+    childLogger.setTraceId(traceId ?? this.traceId);
     return childLogger;
   }
 }
@@ -182,7 +182,7 @@ export interface LogEntry {
   traceId: string;
   context: string;
   message: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 // シングルトンインスタンスのエクスポート

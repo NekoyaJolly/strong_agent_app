@@ -1,31 +1,7 @@
 // src/agents/researcher.ts
 import { Agent, webSearchTool } from '@openai/agents';
-import { z } from 'zod';
-
-// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
-const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
-
-export const ResearchResultSchema = z.object({
-  summary: z.string().describe('リサーチ結果の要約'),
-  findings: z.array(z.object({
-    topic: z.string(),
-    information: z.string(),
-    sources: z.array(z.string()).optional(),
-    relevanceScore: z.number().min(0).max(10)
-  })),
-  recommendations: z.array(z.string()).describe('推奨事項'),
-  technicalConsiderations: z.array(z.string()).describe('技術的考慮事項'),
-  potentialChallenges: z.array(z.string()).describe('想定される課題'),
-  marketAnalysis: z.string().optional().describe('市場分析（該当する場合）'),
-  bestPractices: z.array(z.string()).describe('ベストプラクティス'),
-  references: z.array(z.object({
-    title: z.string(),
-    url: z.string().url(),
-    summary: z.string()
-  })).default([])
-});
-
-export type ResearchResult = z.infer<typeof ResearchResultSchema>;
+import { RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
+import { ResearchResult } from './schemas.js';
 
 export const researcherAgent = new Agent({
   name: 'Researcher',
@@ -43,5 +19,5 @@ export const researcherAgent = new Agent({
     '調査結果は構造化された形式で出力し、後続のArchitectエージェントが活用できるようにしてください。'
   ].join('\n'),
   tools: [webSearchTool()],
-  outputType: ResearchResultSchema
+  outputType: ResearchResult
 });

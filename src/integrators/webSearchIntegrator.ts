@@ -4,11 +4,11 @@
  */
 export class WebSearchIntegrator {
   private apiKey: string | null = null;
-  private baseUrl: string = 'https://api.search.example.com';
+  private baseUrl = 'https://api.search.example.com';
   private defaultOptions: WebSearchOptions;
 
   constructor(apiKey?: string, options?: Partial<WebSearchOptions>) {
-    this.apiKey = apiKey || process.env.WEB_SEARCH_API_KEY || null;
+    this.apiKey = apiKey ?? process.env.WEB_SEARCH_API_KEY ?? null;
     this.defaultOptions = {
       maxResults: 10,
       language: 'ja',
@@ -34,7 +34,7 @@ export class WebSearchIntegrator {
       // 実際の実装では外部Web Search APIを呼び出し
       return await this.performWebSearch(query, searchOptions);
     } catch (error) {
-      throw new Error(`Web search failed: ${error}`);
+      throw new Error(`Web search failed: ${String(error)}`);
     }
   }
 
@@ -60,7 +60,7 @@ export class WebSearchIntegrator {
       // 実際の実装では外部News Search APIを呼び出し
       return await this.performNewsSearch(query, searchOptions);
     } catch (error) {
-      throw new Error(`News search failed: ${error}`);
+      throw new Error(`News search failed: ${String(error)}`);
     }
   }
 
@@ -86,14 +86,14 @@ export class WebSearchIntegrator {
       // 実際の実装では外部Image Search APIを呼び出し
       return await this.performImageSearch(query, searchOptions);
     } catch (error) {
-      throw new Error(`Image search failed: ${error}`);
+      throw new Error(`Image search failed: ${String(error)}`);
     }
   }
 
   /**
    * 実際のWeb検索処理
    */
-  private async performWebSearch(query: string, options: WebSearchOptions): Promise<WebSearchResult[]> {
+  private async performWebSearch(query: string, _options: WebSearchOptions): Promise<WebSearchResult[]> {
     // モック実装 - 実際の実装では外部APIを呼び出し
     await this.delay(500); // API呼び出しをシミュレート
     
@@ -112,7 +112,7 @@ export class WebSearchIntegrator {
   /**
    * 実際のニュース検索処理
    */
-  private async performNewsSearch(query: string, options: NewsSearchOptions): Promise<NewsSearchResult[]> {
+  private async performNewsSearch(query: string, _options: NewsSearchOptions): Promise<NewsSearchResult[]> {
     // モック実装
     await this.delay(500);
     
@@ -132,7 +132,7 @@ export class WebSearchIntegrator {
   /**
    * 実際の画像検索処理
    */
-  private async performImageSearch(query: string, options: ImageSearchOptions): Promise<ImageSearchResult[]> {
+  private async performImageSearch(query: string, _options: ImageSearchOptions): Promise<ImageSearchResult[]> {
     // モック実装
     await this.delay(500);
     

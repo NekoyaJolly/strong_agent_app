@@ -62,14 +62,14 @@ describe('Config Management', () => {
       try {
         // 再帰的にディレクトリを削除
         fs.rmSync(testConfigDir, { recursive: true, force: true });
-      } catch (error) {
+      } catch {
         // クリーンアップエラーは無視
       }
     }
   });
 
-  it('should load default configuration when no config file exists', async () => {
-    const config = await getConfig();
+  it('should load default configuration when no config file exists', () => {
+    const config = getConfig();
     
     expect(config.agent.name).toBe('StrongAgent');
     expect(config.agent.version).toBe('1.0.0');
@@ -128,7 +128,7 @@ describe('Config Management', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should override config with environment variables', async () => {
+  it('should override config with environment variables', () => {
     // 環境変数を設定
     process.env.MODEL_PROVIDER = 'anthropic';
     process.env.MODEL_NAME = 'claude-3';
@@ -136,7 +136,7 @@ describe('Config Management', () => {
     process.env.OPENAI_API_KEY = 'test-api-key';
     process.env.LOG_LEVEL = 'debug';
 
-    const config = await getConfig();
+    const config = getConfig();
     
     expect(config.agent.model.provider).toBe('anthropic');
     expect(config.agent.model.model).toBe('claude-3');
@@ -145,7 +145,7 @@ describe('Config Management', () => {
     expect(config.env.logLevel).toBe('debug');
   });
 
-  it('should handle JSON config file correctly', async () => {
+  it('should handle JSON config file correctly', () => {
     // テスト用のconfig.jsonを作成
     const testConfig = {
       agent: {
@@ -173,11 +173,11 @@ describe('Config Management', () => {
     fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig, null, 2));
     
     // 一時的にprocess.cwdを変更
-    const originalCwd = process.cwd;
+    const originalCwd = process.cwd.bind(process);
     process.cwd = () => testConfigDir;
     
     try {
-      const config = await getConfig();
+      const config = getConfig();
       
       expect(config.agent.name).toBe('CustomAgent');
       expect(config.agent.version).toBe('2.0.0');
@@ -198,10 +198,10 @@ describe('Config Management', () => {
     }
   });
 
-  it('should handle CORS_ORIGINS environment variable correctly', async () => {
+  it('should handle CORS_ORIGINS environment variable correctly', () => {
     process.env.CORS_ORIGINS = 'http://localhost:3000,https://example.com,https://app.example.com';
     
-    const config = await getConfig();
+    const config = getConfig();
     
     expect(config.server.cors.origins).toEqual([
       'http://localhost:3000',
@@ -210,13 +210,13 @@ describe('Config Management', () => {
     ]);
   });
 
-  it('should handle numeric environment variables correctly', async () => {
+  it('should handle numeric environment variables correctly', () => {
     process.env.PORT = '8080';
     process.env.RATE_LIMIT_WINDOW_MS = '30000';
     process.env.RATE_LIMIT_MAX = '100';
     process.env.MAX_TURNS = '15';
     
-    const config = await getConfig();
+    const config = getConfig();
     
     expect(config.server.port).toBe(8080);
     expect(config.env.rateLimitWindowMs).toBe(30000);
@@ -224,17 +224,17 @@ describe('Config Management', () => {
     expect(config.env.maxTurns).toBe(15);
   });
 
-  it('should handle boolean environment variables correctly', async () => {
+  it('should handle boolean environment variables correctly', () => {
     process.env.SERVER_ENABLED = 'true';
     process.env.CORS_ENABLED = 'false';
     
-    const config = await getConfig();
+    const config = getConfig();
     
     expect(config.server.enabled).toBe(true);
     expect(config.server.cors.enabled).toBe(false);
   });
 
-  it('should prioritize environment variables over JSON config', async () => {
+  it('should prioritize environment variables over JSON config', () => {
     // JSONファイルの設定
     const testConfig = {
       agent: {
@@ -260,11 +260,11 @@ describe('Config Management', () => {
     process.env.PORT = '4000';
     
     // 一時的にprocess.cwdを変更
-    const originalCwd = process.cwd;
+    const originalCwd = process.cwd.bind(process);
     process.cwd = () => testConfigDir;
     
     try {
-      const config = await getConfig();
+      const config = getConfig();
       
       // 環境変数の値が優先されることを確認
       expect(config.agent.model.provider).toBe('anthropic');

@@ -1,6 +1,7 @@
 // src/runners/workflowRunner.ts
-import { WorkflowOrchestrator, WorkflowConfig, ApprovalHandler } from '../agent/workflow/WorkflowOrchestrator.js';
-import { ProjectContext, WorkflowStage } from '../agent/workflow/ProjectContext.js';
+import type { WorkflowConfig, ApprovalHandler } from '../agent/workflow/WorkflowOrchestrator.js';
+import { WorkflowOrchestrator } from '../agent/workflow/WorkflowOrchestrator.js';
+import type { ProjectContext, WorkflowStage } from '../agent/workflow/ProjectContext.js';
 import { getConfig } from '../utils/config.js';
 import { logger } from '../utils/logger.js';
 
@@ -10,7 +11,7 @@ export interface WorkflowRunnerOptions {
   requireApproval?: boolean;
   autoApprove?: boolean;
   onApprovalRequired?: ApprovalHandler;
-  onStageComplete?: (stage: WorkflowStage, result: any) => Promise<void>;
+  onStageComplete?: (stage: WorkflowStage, result: unknown) => Promise<void>;
   onWorkflowComplete?: (context: ProjectContext) => Promise<void>;
 }
 
@@ -27,14 +28,14 @@ export class WorkflowRunner {
       logger.info('Starting workflow execution', { request, options: this.options });
 
       // 設定の読み込み
-      const config = this.options.project ? await getConfig(this.options.project) : undefined;
+      const config = this.options.project ? getConfig(this.options.project) : undefined;
       
       // ワークフロー設定の構築
       const workflowConfig: WorkflowConfig = {
-        maxTurns: config?.env.maxTurns || 10,
-        requireApproval: this.options.requireApproval || false,
-        maxIterations: this.options.maxIterations || 3,
-        autoApprove: this.options.autoApprove || false
+        maxTurns: config?.env.maxTurns ?? 10,
+        requireApproval: this.options.requireApproval ?? false,
+        maxIterations: this.options.maxIterations ?? 3,
+        autoApprove: this.options.autoApprove ?? false
       };
 
       // 承認ハンドラーの設定
@@ -95,8 +96,8 @@ export class WorkflowRunner {
     }
   }
 
-  async getProgress(): Promise<ProjectContext | null> {
-    return this.orchestrator?.getContext() || null;
+  getProgress(): ProjectContext | null {
+    return this.orchestrator?.getContext() ?? null;
   }
 
   // 既存のCLIランナーとの互換性を保つためのヘルパーメソッド
@@ -108,17 +109,19 @@ export class WorkflowRunner {
   }): Promise<ProjectContext> {
     const runner = new WorkflowRunner({
       project: options.project,
-      requireApproval: options.requireApproval || false,
-      maxIterations: options.maxIterations || 3,
+      requireApproval: options.requireApproval ?? false,
+      maxIterations: options.maxIterations ?? 3,
       onStageComplete: async (stage, result) => {
         console.log(`\n=== ${stage.toUpperCase()} COMPLETED ===`);
         console.log(JSON.stringify(result, null, 2));
         console.log('================================\n');
+        await Promise.resolve();
       },
       onWorkflowComplete: async (context) => {
         console.log('\n=== WORKFLOW COMPLETED ===');
         console.log('Final Status:', context.status);
         console.log('Generated Files:', context.artifacts.generatedFiles);
+        await Promise.resolve();
         console.log('Modified Files:', context.artifacts.modifiedFiles);
         console.log('Iterations:', context.iterationCount);
         if (context.errors.length > 0) {

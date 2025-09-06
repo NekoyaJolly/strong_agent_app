@@ -1,9 +1,7 @@
 // src/agents/architect.ts
 import { Agent } from '@openai/agents';
+import { RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { ArchitecturePlan } from './schemas.js';
-
-// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
-const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
 
 export const architectAgent = new Agent({
   name: 'Architect/Scaffold',

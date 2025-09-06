@@ -3,9 +3,9 @@
  * コード実行機能のラッパー
  */
 export class CodeInterpreterWrapper {
-  private sandboxMode: boolean = true;
+  private sandboxMode = true;
   private allowedLanguages: string[] = ['javascript', 'typescript', 'python'];
-  private timeout: number = 30000; // 30秒
+  private timeout = 30000; // 30秒
 
   constructor(options?: CodeInterpreterOptions) {
     if (options) {
@@ -38,7 +38,7 @@ export class CodeInterpreterWrapper {
       if (!securityCheck.safe) {
         return {
           success: false,
-          error: `Security check failed: ${securityCheck.reason}`,
+          error: `Security check failed: ${securityCheck.reason ?? 'Unknown reason'}`,
           executionTime: Date.now() - startTime
         };
       }
@@ -79,7 +79,7 @@ export class CodeInterpreterWrapper {
   /**
    * セキュリティチェック
    */
-  private performSecurityCheck(code: string, language: string): SecurityCheckResult {
+  private performSecurityCheck(code: string, _language: string): SecurityCheckResult {
     const dangerousPatterns = [
       /require\s*\(\s*['"]fs['"]\s*\)/, // Node.js fs module
       /import.*fs.*from/, // ES6 fs import
@@ -112,7 +112,7 @@ export class CodeInterpreterWrapper {
 
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        reject(new Error(`Code execution timed out after ${executionTimeout}ms`));
+        reject(new Error(`Code execution timed out after ${executionTimeout.toString()}ms`));
       }, executionTimeout);
 
       try {
@@ -144,7 +144,7 @@ export class CodeInterpreterWrapper {
         }
       } catch (error) {
         clearTimeout(timeoutId);
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
@@ -179,7 +179,7 @@ export interface CodeInterpreterOptions {
 
 export interface ExecutionOptions {
   timeout?: number;
-  environment?: Record<string, any>;
+  environment?: Record<string, unknown>;
 }
 
 export interface ExecutionResult {
@@ -187,12 +187,12 @@ export interface ExecutionResult {
   output?: string;
   error?: string;
   executionTime: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface InternalExecutionResult {
   output: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface SecurityCheckResult {

@@ -1,10 +1,8 @@
 // src/agents/tester.ts
 import { Agent } from '@openai/agents';
-
-// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
-const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
+import { RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { TestReport } from './schemas.js';
-import { TestRunner, TestExecutionResult } from '../utils/testRunner.js';
+import { TestRunner, TestExecutionResult as _TestExecutionResult } from '../utils/testRunner.js';
 import { Logger } from '../utils/logger.js';
 
 export const testAgent = new Agent({
@@ -47,7 +45,7 @@ export class EnhancedTester {
         passed: executionResult.passed,
         failed: executionResult.failed,
         newTests: [generatedTestCode],
-        coverageNote: executionResult.coverage ? `カバレッジ: ${executionResult.coverage}%` : 'カバレッジ情報なし'
+        coverageNote: executionResult.coverage ? `カバレッジ: ${executionResult.coverage.toString()}%` : 'カバレッジ情報なし'
       };
 
       this.logger.info('テスト実行完了', report);
@@ -75,7 +73,7 @@ export class EnhancedTester {
         passed: result.passed,
         failed: result.failed,
         newTests: [],
-        coverageNote: result.coverage ? `プロジェクトカバレッジ: ${result.coverage}%` : undefined
+        coverageNote: result.coverage ? `プロジェクトカバレッジ: ${result.coverage.toString()}%` : undefined
       };
     } catch (error) {
       this.logger.error('プロジェクトテスト実行エラー', error as Error);

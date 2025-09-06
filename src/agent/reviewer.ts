@@ -1,11 +1,17 @@
 // src/agents/reviewer.ts
 import { Agent } from '@openai/agents';
-
-// 推奨プロンプトプレフィックス（@openai/agents-core/extensionsから移行）
-const RECOMMENDED_PROMPT_PREFIX = "You are a helpful assistant. Think step by step and be precise.";
+import { RECOMMENDED_PROMPT_PREFIX } from '@openai/agents-core/extensions';
 import { ReviewReport } from './schemas.js';
-import { TestRunner } from '../utils/testRunner.js';
+import { TestRunner, type ESLintResult, type TypeCheckResult } from '../utils/testRunner.js';
 import { Logger } from '../utils/logger.js';
+
+// レビュー課題の型定義
+interface ReviewIssue {
+  kind: 'eslint' | 'typescript' | 'system';
+  path?: string;
+  message: string;
+  severity: 'info' | 'warn' | 'error';
+}
 
 export const reviewerAgent = new Agent({
   name: 'Reviewer/Static-Analysis',
@@ -34,24 +40,26 @@ export class EnhancedReviewer {
       this.logger.info('コードレビュー開始', { filePath });
 
       // 並行してESLintと型チェックを実行
-      const [eslintResult, typeCheckResult] = await Promise.all([
+      const [eslintResult, typeCheckResult]: [ESLintResult, TypeCheckResult] = await Promise.all([
         this.testRunner.runESLint(filePath),
         this.testRunner.runTypeCheck()
       ]);
 
       // 静的解析の結果をReviewReport形式に変換
-      const issues = [];
+      const issues: ReviewIssue[] = [];
 
       // ESLintの結果を統合
-      if (eslintResult.issues && Array.isArray(eslintResult.issues)) {
+      if (Array.isArray(eslintResult.issues)) {
         for (const file of eslintResult.issues) {
-          for (const message of file.messages || []) {
-            issues.push({
-              kind: 'eslint',
-              path: file.filePath,
-              message: `${message.ruleId}: ${message.message} (行:${message.line})`,
-              severity: this.mapESLintSeverity(message.severity)
-            });
+          if (Array.isArray(file.messages)) {
+            for (const message of file.messages) {
+              issues.push({
+                kind: 'eslint',
+                path: file.filePath,
+                message: `${message.ruleId ?? 'unknown'}: ${message.message} (行:${message.line.toString()})`,
+                severity: this.mapESLintSeverity(message.severity)
+              });
+            }
           }
         }
       }
@@ -124,18 +132,18 @@ export class EnhancedReviewer {
     }
   }
 
-  private generateSummary(issues: any[], score: number): string {
+  private generateSummary(issues: ReviewIssue[], score: number): string {
     const errorCount = issues.filter(issue => issue.severity === 'error').length;
     const warningCount = issues.filter(issue => issue.severity === 'warn').length;
     
     if (issues.length === 0) {
-      return `✅ 静的解析で問題は検出されませんでした。スコア: ${score}/100`;
+      return `✅ 静的解析で問題は検出されませんでした。スコア: ${score.toString()}/100`;
     }
     
-    return `静的解析完了: ${errorCount}個のエラー、${warningCount}個の警告を検出。スコア: ${score}/100`;
+    return `静的解析完了: ${errorCount.toString()}個のエラー、${warningCount.toString()}個の警告を検出。スコア: ${score.toString()}/100`;
   }
 
-  private generateActionItems(issues: any[]): Array<{ id: string, title: string, detail: string, estimateH?: number }> {
+  private generateActionItems(issues: ReviewIssue[]): { id: string, title: string, detail: string, estimateH?: number }[] {
     const actionItems = [];
     
     const errorCount = issues.filter(issue => issue.severity === 'error').length;
@@ -144,7 +152,7 @@ export class EnhancedReviewer {
     if (errorCount > 0) {
       actionItems.push({
         id: 'fix-errors',
-        title: `${errorCount}個のエラーを修正`,
+        title: `${errorCount.toString()}個のエラーを修正`,
         detail: 'ESLintおよび型チェックで検出されたエラーを修正してください',
         estimateH: Math.min(errorCount * 0.5, 8)
       });
@@ -153,7 +161,7 @@ export class EnhancedReviewer {
     if (warningCount > 5) {
       actionItems.push({
         id: 'fix-warnings',
-        title: `${warningCount}個の警告を確認・修正`,
+        title: `${warningCount.toString()}個の警告を確認・修正`,
         detail: 'コード品質向上のため、警告の内容を確認し必要に応じて修正してください',
         estimateH: Math.min(warningCount * 0.1, 4)
       });

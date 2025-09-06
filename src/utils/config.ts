@@ -127,6 +127,9 @@ export type ToolConfig = z.infer<typeof ToolConfigSchema>;
 export type GuardrailsConfig = z.infer<typeof GuardrailsConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 
+// JSONファイルから読み込まれる未知の設定オブジェクト型
+type UnknownConfigObject = Record<string, unknown>;
+
 /**
  * 統合設定管理クラス
  * 1. agent.config.jsonをベース設定として読み込み
@@ -137,9 +140,12 @@ class ConfigManager {
   private static instance: ConfigManager;
   private config: Config | null = null;
 
-  private constructor() {}
+  private constructor() {
+    // Singleton pattern - empty constructor is intentional
+  }
 
   public static getInstance(): ConfigManager {
+     
     if (!ConfigManager.instance) {
       ConfigManager.instance = new ConfigManager();
     }
@@ -149,7 +155,7 @@ class ConfigManager {
   /**
    * 設定を読み込み、検証して返す
    */
-  public async loadConfig(projectName?: string): Promise<Config> {
+  public loadConfig(projectName?: string): Config {
     if (this.config) {
       return this.config;
     }
@@ -158,7 +164,7 @@ class ConfigManager {
     this.loadEnvVars(projectName);
 
     // 2. JSONファイルから基本設定を読み込み
-    const jsonConfig = await this.loadJsonConfig();
+    const jsonConfig = this.loadJsonConfig();
 
     // 3. 環境変数で設定を上書き
     const envOverrides = this.getEnvOverrides();
@@ -208,7 +214,7 @@ class ConfigManager {
   /**
    * JSONファイルから基本設定を読み込む
    */
-  private async loadJsonConfig(): Promise<any> {
+  private loadJsonConfig(): UnknownConfigObject {
     const configPath = path.join(process.cwd(), 'config', 'agent.config.json');
     
     if (!fs.existsSync(configPath)) {
@@ -218,9 +224,13 @@ class ConfigManager {
 
     try {
       const configContent = fs.readFileSync(configPath, 'utf8');
-      return JSON.parse(configContent);
+      const parsed: unknown = JSON.parse(configContent);
+      // JSON.parseは any を返すが、ここでは unknown として扱い、型変換
+      return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) 
+        ? parsed as UnknownConfigObject 
+        : {};
     } catch (error) {
-      console.error(`Failed to parse config file: ${error}`);
+      console.error(`Failed to parse config file: ${String(error)}`);
       throw new Error(`Invalid JSON in config file: ${configPath}`);
     }
   }
@@ -228,7 +238,7 @@ class ConfigManager {
   /**
    * 環境変数から設定の上書き値を取得
    */
-  private getEnvOverrides(): any {
+  private getEnvOverrides(): UnknownConfigObject {
     return {
       agent: {
         model: {
@@ -247,8 +257,8 @@ class ConfigManager {
       },
       env: {
         openaiApiKey: process.env.OPENAI_API_KEY,
-        logLevel: process.env.LOG_LEVEL as any,
-        nodeEnv: process.env.NODE_ENV as any,
+        logLevel: process.env.LOG_LEVEL,
+        nodeEnv: process.env.NODE_ENV,
         corsOrigins: process.env.CORS_ORIGINS,
         rateLimitWindowMs: process.env.RATE_LIMIT_WINDOW_MS ? parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) : undefined,
         rateLimitMax: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX, 10) : undefined,
@@ -261,23 +271,30 @@ class ConfigManager {
   /**
    * 設定をマージする（環境変数が優先）
    */
-  private mergeConfigs(jsonConfig: any, envOverrides: any): any {
+  private mergeConfigs(jsonConfig: UnknownConfigObject, envOverrides: UnknownConfigObject): UnknownConfigObject {
     return this.deepMerge(jsonConfig, envOverrides);
   }
 
   /**
    * オブジェクトの深いマージ（undefinedは無視）
    */
-  private deepMerge(target: any, source: any): any {
+  private deepMerge(target: UnknownConfigObject, source: UnknownConfigObject): UnknownConfigObject {
+     
     if (!source || typeof source !== 'object') return target;
+     
     if (!target || typeof target !== 'object') return source;
 
     const result = { ...target };
 
     for (const key in source) {
       if (source[key] !== undefined) {
-        if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
-          result[key] = this.deepMerge(result[key], source[key]);
+        if (typeof source[key] === 'object' && !Array.isArray(source[key]) && source[key] !== null) {
+          // 型ガード: unknown をオブジェクトとして安全に扱う
+          const sourceValue = source[key] as UnknownConfigObject;
+          const targetValue = (result[key] && typeof result[key] === 'object' && !Array.isArray(result[key]))
+            ? result[key] as UnknownConfigObject
+            : {};
+          result[key] = this.deepMerge(targetValue, sourceValue);
         } else {
           result[key] = source[key];
         }
@@ -291,7 +308,7 @@ class ConfigManager {
    * Docker secretsからOpenAI APIキーを読み込む
    */
   private loadOpenAIKeyFromSecrets(): void {
-    const secretPath = process.env.OPENAI_API_KEY_FILE || '/run/secrets/openai_api_key';
+    const secretPath = process.env.OPENAI_API_KEY_FILE ?? '/run/secrets/openai_api_key';
     if (fs.existsSync(secretPath)) {
       try {
         const key = fs.readFileSync(secretPath, 'utf8').trim();
@@ -299,7 +316,7 @@ class ConfigManager {
           process.env.OPENAI_API_KEY = key;
         }
       } catch (error) {
-        console.warn(`Failed to read OpenAI API key from secrets: ${error}`);
+        console.warn(`Failed to read OpenAI API key from secrets: ${String(error)}`);
       }
     }
   }
@@ -328,7 +345,7 @@ export const configManager = ConfigManager.getInstance();
 /**
  * 便利関数：設定を読み込んで取得
  */
-export async function getConfig(projectName?: string): Promise<Config> {
+export function getConfig(projectName?: string): Config {
   return configManager.loadConfig(projectName);
 }
 

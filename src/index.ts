@@ -6,13 +6,13 @@ import { startServer } from './runners/serverRunner.js';
 import { triageAgent } from './agent/triage.js';
 import { cliWorkflowRunner } from './runners/workflowRunner.js';
 import { loadOpenAIKeyFromSecrets } from './utils/env.js';
-import { SafeAgentRunner } from './utils/agentRunner.js';
+import { runAgent } from './utils/agentRunner.js';
 
 const MODE = process.env.RUN_MODE ?? (process.env.NODE_ENV === 'production' ? 'server' : 'cli');
 const USE_WORKFLOW = process.env.USE_WORKFLOW === 'true';
 
 // Phase 1: OpenAI Agents SDK の適切な初期化
-async function initializeApplication() {
+function initializeApplication() {
   try {
     // 環境変数の読み込み
     loadOpenAIKeyFromSecrets();
@@ -22,7 +22,7 @@ async function initializeApplication() {
     
     // 共有Runnerインスタンスの初期化
     sharedRunner.initialize({
-      model: process.env.DEFAULT_MODEL || 'gpt-4o',
+      model: process.env.DEFAULT_MODEL ?? 'gpt-4o',
       workflowName: 'Strong Agent Application',
       tracingDisabled: process.env.NODE_ENV === 'test'
     });
@@ -35,10 +35,10 @@ async function initializeApplication() {
 }
 
 if (MODE === 'server') {
-  await initializeApplication();
-  await startServer();
+  initializeApplication();
+  startServer();
 } else {
-  await initializeApplication();
+  initializeApplication();
   
   const input = process.argv.slice(2).join(' ') || '稼働テスト';
   
@@ -48,20 +48,21 @@ if (MODE === 'server') {
       project: 'default',
       task: input,
       requireApproval: process.env.REQUIRE_APPROVAL === 'true',
-      maxIterations: parseInt(process.env.MAX_ITERATIONS || '3')
+      maxIterations: parseInt(process.env.MAX_ITERATIONS ?? '3')
     });
   } else {
     // 従来のTriageエージェントを使用（新しいSafeAgentRunnerで実行）
     console.log('🤖 Running Triage Agent with input:', input);
     
-    const result = await SafeAgentRunner.runAgent(triageAgent, input, { 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await runAgent(triageAgent as any, input, { 
       maxTurns: 4,
       timeout: 60000 
     });
     
     if (result.success) {
       console.log('✅ Agent execution completed successfully');
-      console.log(result.data || 'No output');
+      console.log(result.data ?? 'No output');
     } else {
       console.error('❌ Agent execution failed:', result.error);
       if (result.recoverable) {

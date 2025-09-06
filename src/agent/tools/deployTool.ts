@@ -5,7 +5,7 @@
 export class DeployTool {
   private approvalRequired: boolean;
 
-  constructor(approvalRequired: boolean = true) {
+  constructor(approvalRequired = true) {
     this.approvalRequired = approvalRequired;
   }
 
@@ -50,7 +50,7 @@ export class DeployTool {
 
       return {
         success: true,
-        deploymentId: `deploy-${Date.now()}`,
+        deploymentId: `deploy-${Date.now().toString()}`,
         timestamp: new Date(),
         environment: deploymentDetails.environment,
         version: deploymentDetails.version
