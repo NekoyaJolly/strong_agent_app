@@ -45,7 +45,7 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
     };
     
     // Mock getSharedRunner to return our mock
-    vi.mocked(getSharedRunner).mockReturnValue(mockRunner as any);
+    vi.mocked(getSharedRunner).mockReturnValue(mockRunner);
   });
 
   afterEach(() => {

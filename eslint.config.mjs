@@ -7,20 +7,19 @@ export default defineConfig([
   // ESLint推奨設定
   eslint.configs.recommended,
   
-  // TypeScript-ESLint推奨設定（3層構成）
-  ...tseslint.configs.recommended,
-  ...tseslint.configs.strict,
-  ...tseslint.configs.stylistic,
+  // TypeScript-ESLint推奨設定（Type-Checked版）
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   
   // TypeScriptファイル専用設定
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['*.config.ts', 'vitest.config.ts'], // 設定ファイルは除外
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
       parserOptions: {
-        project: ['./tsconfig.json'],
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -76,7 +75,7 @@ export default defineConfig([
     },
   },
   
-  // グローバル除外設定
+  // グローバル除外設定（Type-Checkedルールから除外）
   {
     ignores: [
       'dist/',
@@ -86,6 +85,9 @@ export default defineConfig([
       '*.js', // ビルド成果物
       '*.mjs', // ビルド成果物（本設定ファイル除く）
       '.git/',
+      '*.config.ts', // 設定ファイル群
+      'vitest.config.ts',
+      'vite.config.ts',
     ],
   },
 ]);

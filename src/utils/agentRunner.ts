@@ -51,7 +51,7 @@ export class SafeAgentRunner {
       // タイムアウト設定
       const timeoutPromise = options.timeout 
         ? new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Agent execution timeout')), options.timeout)
+            setTimeout(() => { reject(new Error('Agent execution timeout')); }, options.timeout)
           )
         : null;
 

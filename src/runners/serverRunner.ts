@@ -51,7 +51,7 @@ export async function createServer() {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       // オリジンなしのリクエスト (curl, モバイルアプリ等) を許可
       if (!origin) {
-        return callback(null, true);
+        callback(null, true); return;
       }
 
       try {
