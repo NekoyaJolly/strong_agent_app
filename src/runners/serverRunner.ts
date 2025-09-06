@@ -112,9 +112,11 @@ export function createServer() {
       retryAfter: 60
     },
     keyGenerator: (req) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       return `api_${req.ip ?? 'unknown'}_${req.path ?? 'unknown'}`;
     },
     handler: (req, res) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       logger.warn(`API rate limit exceeded for ${req.ip ?? 'unknown'} on ${req.path ?? 'unknown'}`);
       res.status(429).json({
         error: 'Too many API requests',

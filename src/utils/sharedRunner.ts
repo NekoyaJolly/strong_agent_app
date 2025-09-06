@@ -25,6 +25,7 @@ class SharedRunnerManager {
   }
 
   static getInstance(): SharedRunnerManager {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!SharedRunnerManager.instance) {
       SharedRunnerManager.instance = new SharedRunnerManager();
     }

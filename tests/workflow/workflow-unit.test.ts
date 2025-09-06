@@ -483,7 +483,7 @@ describe('Agent Workflow Unit Tests', () => {
         contextManager.addWorkflowStep({
           stage: WorkflowStage.IMPLEMENTATION,
           status: WorkflowStatus.PENDING,
-          agentName: `Agent${i}`,
+          agentName: `Agent${i.toString()}`,
           requiresApproval: false
         });
       }
@@ -529,8 +529,8 @@ describe('Agent Workflow Unit Tests', () => {
           decisions: Array(200).fill('decision'),
           risks: Array(100).fill('risk'),
           initialBacklog: Array(1000).fill(null).map((_, i) => ({
-            id: `task-${i}`,
-            title: `Task ${i}`,
+            id: `task-${i.toString()}`,
+            title: `Task ${i.toString()}`,
             detail: 'Large task description with lots of text'.repeat(10),
             estimateH: i % 10
           }))
@@ -550,14 +550,14 @@ describe('Agent Workflow Unit Tests', () => {
       for (let i = 0; i < errorCount; i++) {
         contextManager.addError(
           WorkflowStage.IMPLEMENTATION, 
-          `Error ${i}: Performance test error with detailed message`
+          `Error ${i.toString()}: Performance test error with detailed message`
         );
       }
 
       const context = contextManager.getContext();
       expect(context.errors).toHaveLength(errorCount);
       expect(context.errors[0].error).toContain('Error 0');
-      expect(context.errors[errorCount - 1].error).toContain(`Error ${errorCount - 1}`);
+      expect(context.errors[errorCount - 1].error).toContain(`Error ${(errorCount - 1).toString()}`);
     });
   });
 });

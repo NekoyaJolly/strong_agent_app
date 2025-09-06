@@ -22,7 +22,7 @@ vi.mock('../../src/utils/logger.js', () => ({
 import { getSharedRunner } from '../../src/utils/sharedRunner.js';
 
 // テスト用SDK初期化
-beforeAll(async () => {
+beforeAll(() => {
   process.env.NODE_ENV = 'test';
   process.env.OPENAI_API_KEY = 'test-key';
   
@@ -46,7 +46,6 @@ describe('SafeAgentRunner - Phase 1 SDK Integration Tests', () => {
     };
     
     // Mock getSharedRunner to return our mock
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     vi.mocked(getSharedRunner).mockReturnValue(mockRunner);
   });
 

@@ -1,6 +1,6 @@
 // tests/workflow/workflow-integration-runner.test.ts
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
-import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorkflowOrchestrator } from '../../src/agent/workflow/WorkflowOrchestrator.js';
 import { ProjectContextManager, WorkflowStage, WorkflowStatus } from '../../src/agent/workflow/ProjectContext.js';
 import { 
@@ -94,7 +94,7 @@ describe('Workflow Integration Runner Tests', () => {
       expect(newOrchestrator).toBeDefined();
     });
 
-    it('should execute workflow initialization', async () => {
+    it('should execute workflow initialization', () => {
       // Mock successful agent responses
       mockRun.mockResolvedValue({
         finalOutput: { memo: 'Workflow initialized successfully' }
@@ -393,7 +393,7 @@ describe('Workflow Integration Runner Tests', () => {
   });
 
   describe('Performance and Reliability', () => {
-    it('should handle workflow timeout scenarios gracefully', async () => {
+    it('should handle workflow timeout scenarios gracefully', () => {
       const context = ProjectContextManager.create('Timeout test');
       const manager = new ProjectContextManager(context);
 
@@ -429,7 +429,7 @@ describe('Workflow Integration Runner Tests', () => {
         stepIds.push(manager.addWorkflowStep({
           stage: WorkflowStage.IMPLEMENTATION,
           status: WorkflowStatus.PENDING,
-          agentName: `Agent${i}`,
+          agentName: `Agent${i.toString()}`,
           requiresApproval: false
         }));
       }

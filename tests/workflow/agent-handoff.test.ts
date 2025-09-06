@@ -207,7 +207,7 @@ describe('Agent Handoff and Communication Tests', () => {
 
       const handoffNote = {
         reason: 'Testing required for implemented components',
-        context: `Test ${implementationOutput.createdFiles.length} new files and verify build process`
+        context: `Test ${implementationOutput.createdFiles.length.toString()} new files and verify build process`
       };
 
       expect(handoffNote.reason).toBe('Testing required for implemented components');
@@ -224,7 +224,7 @@ describe('Agent Handoff and Communication Tests', () => {
 
       const handoffNote = {
         reason: 'Code review required after testing',
-        context: `${testOutput.passed} tests passed, ${testOutput.failed} failed. Coverage: 85%`
+        context: `${testOutput.passed.toString()} tests passed, ${testOutput.failed.toString()} failed. Coverage: 85%`
       };
 
       expect(handoffNote.reason).toBe('Code review required after testing');
@@ -275,7 +275,7 @@ describe('Agent Handoff and Communication Tests', () => {
 
       const handoffNote = {
         reason: 'Implementation fixes required based on review',
-        context: `${reviewOutput.issues.length} issues found, score: ${reviewOutput.score}%`
+        context: `${reviewOutput.issues.length.toString()} issues found, score: ${reviewOutput.score.toString()}%`
       };
 
       expect(handoffNote.reason).toBe('Implementation fixes required based on review');
@@ -347,7 +347,7 @@ describe('Agent Handoff and Communication Tests', () => {
         memo: 'Large dataset processing'.repeat(1000),
         data: Array(10000).fill(null).map((_, i) => ({
           id: i,
-          value: `item-${i}`,
+          value: `item-${i.toString()}`,
           metadata: {
             timestamp: new Date().toISOString(),
             processed: i % 2 === 0
@@ -388,7 +388,7 @@ describe('Agent Handoff and Communication Tests', () => {
       });
 
       const concurrentHandoffs = Array(100).fill(null).map((_, i) => ({
-        id: `handoff-${i}`,
+        id: `handoff-${i.toString()}`,
         timestamp: new Date().toISOString(),
         data: { value: i, processed: false }
       }));

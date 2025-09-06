@@ -173,7 +173,7 @@ describe('Config Management', () => {
     fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig, null, 2));
     
     // 一時的にprocess.cwdを変更
-    const originalCwd = process.cwd;
+    const originalCwd = process.cwd.bind(process);
     process.cwd = () => testConfigDir;
     
     try {
@@ -198,7 +198,7 @@ describe('Config Management', () => {
     }
   });
 
-  it('should handle CORS_ORIGINS environment variable correctly', async () => {
+  it('should handle CORS_ORIGINS environment variable correctly', () => {
     process.env.CORS_ORIGINS = 'http://localhost:3000,https://example.com,https://app.example.com';
     
     const config = getConfig();
@@ -210,7 +210,7 @@ describe('Config Management', () => {
     ]);
   });
 
-  it('should handle numeric environment variables correctly', async () => {
+  it('should handle numeric environment variables correctly', () => {
     process.env.PORT = '8080';
     process.env.RATE_LIMIT_WINDOW_MS = '30000';
     process.env.RATE_LIMIT_MAX = '100';
@@ -224,7 +224,7 @@ describe('Config Management', () => {
     expect(config.env.maxTurns).toBe(15);
   });
 
-  it('should handle boolean environment variables correctly', async () => {
+  it('should handle boolean environment variables correctly', () => {
     process.env.SERVER_ENABLED = 'true';
     process.env.CORS_ENABLED = 'false';
     
@@ -234,7 +234,7 @@ describe('Config Management', () => {
     expect(config.server.cors.enabled).toBe(false);
   });
 
-  it('should prioritize environment variables over JSON config', async () => {
+  it('should prioritize environment variables over JSON config', () => {
     // JSONファイルの設定
     const testConfig = {
       agent: {
@@ -260,7 +260,7 @@ describe('Config Management', () => {
     process.env.PORT = '4000';
     
     // 一時的にprocess.cwdを変更
-    const originalCwd = process.cwd;
+    const originalCwd = process.cwd.bind(process);
     process.cwd = () => testConfigDir;
     
     try {
